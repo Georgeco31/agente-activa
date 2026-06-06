@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: agua_sales_db
+    environment:
+      POSTGRES_DB: agua_sales
+      POSTGRES_USER: agua_user
+      POSTGRES_PASSWORD: agua_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agua_user -d agua_sales"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./apps/api
+    container_name: agua_sales_api
+    environment:
+      APP_NAME: Agua Sales API
+      APP_ENV: docker
+      API_V1_PREFIX: /api/v1
+      DATABASE_URL: postgresql+psycopg://agua_user:agua_password@db:5432/agua_sales
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
