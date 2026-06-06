@@ -8,6 +8,8 @@ El proyecto se esta construyendo por bloques. Primero se desarrolla el backend d
 
 Bloque 1 completado: base tecnica inicial.
 
+Bloque 2 en implementacion: modelos ORM, Alembic, migracion inicial y seed de estados.
+
 Incluye:
 
 - Estructura inicial de `apps/api`.
@@ -22,8 +24,6 @@ Incluye:
 
 No incluye todavia:
 
-- Modelos ORM de negocio.
-- Migraciones Alembic.
 - Servicios de clientes, productos o pedidos.
 - Agente de WhatsApp.
 - Panel administrativo.
@@ -100,6 +100,46 @@ docker compose ps
 docker compose exec db pg_isready -U agua_user -d agua_sales
 ```
 
+## Ejecutar migraciones
+
+Levantar servicios:
+
+```powershell
+docker compose up -d --build
+```
+
+Aplicar la migracion inicial:
+
+```powershell
+docker compose exec api alembic upgrade head
+```
+
+Verificar tablas:
+
+```powershell
+docker compose exec db psql -U agua_user -d agua_sales -c "\dt"
+```
+
+Verificar version de Alembic:
+
+```powershell
+docker compose exec db psql -U agua_user -d agua_sales -c "SELECT * FROM alembic_version;"
+```
+
+## Ejecutar seed de estados
+
+El seed de estados es idempotente. Puede ejecutarse mas de una vez sin duplicar registros.
+
+```powershell
+docker compose exec api python -m app.seeds.order_statuses
+```
+
+Verificar estados:
+
+```powershell
+docker compose exec db psql -U agua_user -d agua_sales -c "SELECT * FROM order_statuses;"
+```
+
 ## Variables de entorno
 
 La API incluye un archivo de referencia en:
@@ -121,7 +161,7 @@ DATABASE_URL=postgresql+psycopg://agua_user:agua_password@db:5432/agua_sales
 
 ## Proximo paso
 
-Bloque 2: modelos ORM + Alembic + migracion inicial.
+Completar validacion del Bloque 2: modelos ORM + Alembic + migracion inicial.
 
 El Bloque 2 debe crear los modelos de negocio, configurar migraciones y precargar los estados base del pedido:
 

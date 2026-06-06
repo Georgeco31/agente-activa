@@ -46,6 +46,7 @@ Campos esperados:
 - `id`
 - `customer_id`
 - `phone_e164`
+- `normalized_phone`
 - `raw_phone`
 - `label`
 - `is_primary`
@@ -55,7 +56,7 @@ Campos esperados:
 
 Restriccion principal:
 
-- `phone_e164` debe ser unico globalmente.
+- `normalized_phone` debe ser unico globalmente.
 
 ### CustomerAlias
 
@@ -307,7 +308,7 @@ Campos esperados:
 
 ## Restricciones importantes
 
-- `CustomerPhone.phone_e164` unico global.
+- `CustomerPhone.normalized_phone` unico global.
 - `Product.sku` unico.
 - `OrderStatus.code` unico.
 - `DeliveryRoute.code` unico.
@@ -322,6 +323,7 @@ Campos esperados:
 Campos normalizados esperados:
 
 - `Customer.normalized_name`
+- `CustomerPhone.normalized_phone`
 - `CustomerAlias.normalized_alias`
 - `CustomerAddress.normalized_address`
 - `CustomerAddress.normalized_reference`
