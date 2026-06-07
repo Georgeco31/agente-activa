@@ -1,9 +1,12 @@
 from collections.abc import Callable, Generator
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.db.session import SessionLocal
+from app.api.deps import get_db
+from app.db.session import engine
+from app.main import app
 from app.models.customer import Customer
 from app.models.customer_address import CustomerAddress
 from app.models.customer_alias import CustomerAlias
@@ -13,14 +16,26 @@ from app.services.normalization import normalize_ecuador_phone, normalize_text
 
 @pytest.fixture
 def db_session() -> Generator[Session]:
-    db = SessionLocal()
-    transaction = db.begin()
+    connection = engine.connect()
+    transaction = connection.begin()
+    db = Session(bind=connection, join_transaction_mode="create_savepoint")
     try:
         yield db
     finally:
-        if transaction.is_active:
-            transaction.rollback()
         db.close()
+        transaction.rollback()
+        connection.close()
+
+
+@pytest.fixture
+def client(db_session: Session) -> Generator[TestClient]:
+    def override_get_db() -> Generator[Session]:
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    with TestClient(app) as test_client:
+        yield test_client
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
