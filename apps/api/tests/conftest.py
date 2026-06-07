@@ -1,7 +1,9 @@
 from collections.abc import Callable, Generator
+from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
@@ -11,6 +13,9 @@ from app.models.customer import Customer
 from app.models.customer_address import CustomerAddress
 from app.models.customer_alias import CustomerAlias
 from app.models.customer_phone import CustomerPhone
+from app.models.order_status import OrderStatus
+from app.models.product import Product
+from app.seeds.order_statuses import BASE_ORDER_STATUSES
 from app.services.normalization import normalize_ecuador_phone, normalize_text
 
 
@@ -94,3 +99,43 @@ def create_test_customer(db_session: Session) -> Callable[..., Customer]:
         return customer
 
     return _create_test_customer
+
+
+@pytest.fixture
+def create_test_product(db_session: Session) -> Callable[..., Product]:
+    def _create_test_product(
+        *,
+        sku: str = "TEST-PRODUCT",
+        name: str = "Producto de Prueba",
+        unit: str = "unidad",
+        price: Decimal = Decimal("10.00"),
+        is_active: bool = True,
+    ) -> Product:
+        product = Product(
+            sku=sku,
+            name=name,
+            normalized_name=normalize_text(name),
+            unit=unit,
+            price=price,
+            is_active=is_active,
+        )
+        db_session.add(product)
+        db_session.flush()
+        return product
+
+    return _create_test_product
+
+
+@pytest.fixture
+def order_statuses(db_session: Session) -> dict[str, OrderStatus]:
+    statuses: dict[str, OrderStatus] = {}
+    for status_data in BASE_ORDER_STATUSES:
+        order_status = db_session.scalar(
+            select(OrderStatus).where(OrderStatus.code == status_data["code"])
+        )
+        if order_status is None:
+            order_status = OrderStatus(**status_data)
+            db_session.add(order_status)
+            db_session.flush()
+        statuses[order_status.code] = order_status
+    return statuses
