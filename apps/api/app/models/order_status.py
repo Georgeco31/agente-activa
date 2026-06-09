@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.order import Order
 
 
 class OrderStatus(Base):
@@ -18,4 +22,4 @@ class OrderStatus(Base):
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False)
     is_final: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    orders: Mapped[list["Order"]] = relationship(back_populates="status")
+    orders: Mapped[list[Order]] = relationship(back_populates="status")

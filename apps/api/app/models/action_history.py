@@ -2,12 +2,17 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Index, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.customer import Customer
+    from app.models.order import Order
 
 
 class ActionHistory(Base):
@@ -36,5 +41,5 @@ class ActionHistory(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
-    customer: Mapped["Customer | None"] = relationship(back_populates="action_history")
-    order: Mapped["Order | None"] = relationship(back_populates="action_history")
+    customer: Mapped[Customer | None] = relationship(back_populates="action_history")
+    order: Mapped[Order | None] = relationship(back_populates="action_history")

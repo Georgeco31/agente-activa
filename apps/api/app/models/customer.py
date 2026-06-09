@@ -2,12 +2,20 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.action_history import ActionHistory
+    from app.models.customer_address import CustomerAddress
+    from app.models.customer_alias import CustomerAlias
+    from app.models.customer_phone import CustomerPhone
+    from app.models.order import Order
 
 
 class Customer(Base):
@@ -26,14 +34,14 @@ class Customer(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
-    phones: Mapped[list["CustomerPhone"]] = relationship(
+    phones: Mapped[list[CustomerPhone]] = relationship(
         back_populates="customer", cascade="all, delete-orphan"
     )
-    aliases: Mapped[list["CustomerAlias"]] = relationship(
+    aliases: Mapped[list[CustomerAlias]] = relationship(
         back_populates="customer", cascade="all, delete-orphan"
     )
-    addresses: Mapped[list["CustomerAddress"]] = relationship(
+    addresses: Mapped[list[CustomerAddress]] = relationship(
         back_populates="customer", cascade="all, delete-orphan"
     )
-    orders: Mapped[list["Order"]] = relationship(back_populates="customer")
-    action_history: Mapped[list["ActionHistory"]] = relationship(back_populates="customer")
+    orders: Mapped[list[Order]] = relationship(back_populates="customer")
+    action_history: Mapped[list[ActionHistory]] = relationship(back_populates="customer")
