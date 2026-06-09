@@ -89,8 +89,10 @@ Validacion actual:
 |       |-- Dockerfile
 |       `-- pyproject.toml
 |-- docs/
+|   |-- API_USAGE.md
 |   |-- DATA_MODEL.md
-|   `-- PRD.md
+|   |-- PRD.md
+|   `-- TESTING.md
 |-- docker-compose.yml
 `-- README.md
 ```
@@ -218,8 +220,8 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 - [Requisitos del producto](docs/PRD.md)
 - [Modelo de datos](docs/DATA_MODEL.md)
-- `docs/API_USAGE.md`: guia de uso de la API, pendiente de creacion.
-- `docs/TESTING.md`: guia detallada de pruebas, pendiente de creacion.
+- [Guía de uso de API](docs/API_USAGE.md)
+- [Guía de pruebas](docs/TESTING.md)
 - OpenAPI interactivo disponible en `http://localhost:8000/docs`.
 
 ## Roadmap pendiente
