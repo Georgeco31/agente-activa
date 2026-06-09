@@ -31,10 +31,11 @@ El backend MVP se encuentra funcional y validado. Los bloques completados son:
 - Bloque 4B: endpoints administrativos de productos.
 - Bloque 4C: endpoints administrativos de pedidos.
 - Bloque 5A: documentacion base, validacion integral, Ruff y pruebas completas.
+- Bloque 5B: respuestas de error uniformes y manejo seguro de errores inesperados.
 
 Validacion actual:
 
-- `docker compose exec api python -m pytest`: 82 pruebas aprobadas.
+- `docker compose exec api python -m pytest`: 97 pruebas aprobadas.
 - `docker compose exec api python -m ruff check app tests`: todos los chequeos aprobados.
 - `GET /api/v1/health`: responde `status: ok` y `database: ok`.
 
@@ -65,6 +66,7 @@ Validacion actual:
 - Asociacion de telefonos, alias y direcciones.
 - Historial de acciones relevantes.
 - Gestion administrativa de clientes, productos y pedidos mediante API.
+- Respuestas de error uniformes para reglas de negocio, validacion y errores inesperados.
 - Pruebas automatizadas y validacion de calidad con Ruff.
 
 ## Estructura del proyecto
@@ -161,6 +163,24 @@ Ejecutar Ruff:
 docker compose exec api python -m ruff check app tests
 ```
 
+## Respuestas de error
+
+Los errores de la API usan una estructura uniforme:
+
+```json
+{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "Resource not found.",
+    "details": {}
+  }
+}
+```
+
+Las validaciones de entrada responden con estado `422` y codigo
+`VALIDATION_ERROR`. Los errores inesperados responden con estado `500` y codigo
+`INTERNAL_SERVER_ERROR` sin exponer trazas ni detalles internos.
+
 ## Endpoints disponibles
 
 ### Health
@@ -204,7 +224,6 @@ docker compose exec api python -m ruff check app tests
 
 ## Roadmap pendiente
 
-- Bloque 5B: endurecimiento de API, errores y respuestas uniformes.
 - Panel administrativo con Next.js.
 - Integracion futura con agente de WhatsApp.
 - Autenticacion y autorizacion.

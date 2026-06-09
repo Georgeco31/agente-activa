@@ -69,7 +69,8 @@ def test_create_product_rejects_duplicate_sku(client: TestClient) -> None:
     )
 
     assert response.status_code == 409
-    assert response.json()["detail"] == "Product SKU is already registered."
+    assert response.json()["error"]["code"] == "PRODUCT_SKU_ALREADY_EXISTS"
+    assert response.json()["error"]["message"] == "Product SKU is already registered."
 
 
 def test_list_products(client: TestClient) -> None:

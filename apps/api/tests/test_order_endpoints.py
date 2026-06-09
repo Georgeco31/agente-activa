@@ -144,7 +144,8 @@ def test_create_order_rejects_missing_customer(
     )
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Customer not found."
+    assert response.json()["error"]["code"] == "CUSTOMER_NOT_FOUND"
+    assert response.json()["error"]["message"] == "Customer not found."
 
 
 def test_create_order_rejects_missing_address(
@@ -161,7 +162,8 @@ def test_create_order_rejects_missing_address(
     )
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Address not found."
+    assert response.json()["error"]["code"] == "ORDER_ADDRESS_NOT_FOUND"
+    assert response.json()["error"]["message"] == "Address not found."
 
 
 def test_create_order_rejects_address_from_another_customer(
@@ -179,7 +181,8 @@ def test_create_order_rejects_address_from_another_customer(
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "Address does not belong to customer."
+    assert response.json()["error"]["code"] == "ORDER_ADDRESS_NOT_BELONG_TO_CUSTOMER"
+    assert response.json()["error"]["message"] == "Address does not belong to customer."
 
 
 def test_create_order_rejects_missing_product(
@@ -195,7 +198,8 @@ def test_create_order_rejects_missing_product(
     )
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Product not found."
+    assert response.json()["error"]["code"] == "ORDER_PRODUCT_NOT_FOUND"
+    assert response.json()["error"]["message"] == "Product not found."
 
 
 def test_create_order_rejects_inactive_product(
@@ -212,7 +216,8 @@ def test_create_order_rejects_inactive_product(
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "Inactive products cannot be ordered."
+    assert response.json()["error"]["code"] == "ORDER_PRODUCT_INACTIVE"
+    assert response.json()["error"]["message"] == "Inactive products cannot be ordered."
 
 
 def test_get_order_by_id(

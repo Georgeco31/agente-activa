@@ -44,6 +44,17 @@ def client(db_session: Session) -> Generator[TestClient]:
 
 
 @pytest.fixture
+def non_raising_client(db_session: Session) -> Generator[TestClient]:
+    def override_get_db() -> Generator[Session]:
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    with TestClient(app, raise_server_exceptions=False) as test_client:
+        yield test_client
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
 def create_test_customer(db_session: Session) -> Callable[..., Customer]:
     def _create_test_customer(
         *,

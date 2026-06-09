@@ -134,7 +134,8 @@ def test_prevents_duplicate_phone_from_api(
     )
 
     assert response.status_code == 409
-    assert response.json()["detail"] == "Phone is already registered."
+    assert response.json()["error"]["code"] == "CUSTOMER_PHONE_ALREADY_EXISTS"
+    assert response.json()["error"]["message"] == "Phone is already registered."
 
 
 def test_health_endpoint_still_works(client: TestClient) -> None:

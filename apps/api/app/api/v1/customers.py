@@ -1,9 +1,9 @@
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Query, status
 
 from app.api.deps import DbSession
+from app.core.exceptions import ApiError, ErrorCode
 from app.repositories import customers as customer_repository
 from app.schemas.customer import (
     CustomerCreate,
@@ -43,10 +43,29 @@ def create_customer(payload: CustomerCreate, db: DbSession):
     try:
         result = register_customer_safely(db, **payload.model_dump())
         db.commit()
+    except PhoneAlreadyRegisteredError as exc:
+        db.rollback()
+        raise ApiError(
+            status_code=status.HTTP_409_CONFLICT,
+            code=ErrorCode.CUSTOMER_PHONE_ALREADY_EXISTS,
+            message=str(exc),
+        ) from exc
     except CustomerRegistrationError as exc:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        raise ApiError(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code=ErrorCode.BUSINESS_RULE_ERROR,
+            message=str(exc),
+        ) from exc
+    except ValueError as exc:
+        db.rollback()
+        raise ApiError(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code=ErrorCode.BUSINESS_RULE_ERROR,
+            message=str(exc),
+        ) from exc
 
+    duplicate_candidates = _duplicate_responses(result.duplicate_candidates)
     response = CustomerRegistrationResponse(
         created=result.created,
         customer=(
@@ -54,14 +73,20 @@ def create_customer(payload: CustomerCreate, db: DbSession):
             if result.customer is not None
             else None
         ),
-        duplicate_candidates=_duplicate_responses(result.duplicate_candidates),
+        duplicate_candidates=duplicate_candidates,
         message=result.message,
     )
 
     if not result.created:
-        return JSONResponse(
+        raise ApiError(
             status_code=status.HTTP_409_CONFLICT,
-            content=response.model_dump(mode="json"),
+            code=ErrorCode.CUSTOMER_DUPLICATE_CANDIDATE_FOUND,
+            message=result.message,
+            details={
+                "duplicate_candidates": [
+                    candidate.model_dump(mode="json") for candidate in duplicate_candidates
+                ]
+            },
         )
 
     return response
@@ -77,9 +102,10 @@ def find_customers(
     reference: str | None = Query(default=None),
 ):
     if not any([phone, name, alias, address, reference]):
-        raise HTTPException(
+        raise ApiError(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="At least one search criterion is required.",
+            code=ErrorCode.BUSINESS_RULE_ERROR,
+            message="At least one search criterion is required.",
         )
 
     try:
@@ -92,7 +118,11 @@ def find_customers(
             reference=reference,
         )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        raise ApiError(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code=ErrorCode.BUSINESS_RULE_ERROR,
+            message=str(exc),
+        ) from exc
 
 
 @router.post("/detect-duplicates", response_model=list[DuplicateCandidateResponse])
@@ -104,7 +134,11 @@ def detect_duplicates(payload: DuplicateDetectionRequest, db: DbSession):
 def get_customer(customer_id: UUID, db: DbSession):
     customer = customer_repository.get_customer_by_id(db, customer_id)
     if customer is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found.")
+        raise ApiError(
+            status_code=status.HTTP_404_NOT_FOUND,
+            code=ErrorCode.CUSTOMER_NOT_FOUND,
+            message="Customer not found.",
+        )
     return customer
 
 
@@ -121,13 +155,32 @@ def create_customer_phone(customer_id: UUID, payload: CustomerPhoneCreate, db: D
         return phone
     except PhoneAlreadyRegisteredError as exc:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+        raise ApiError(
+            status_code=status.HTTP_409_CONFLICT,
+            code=ErrorCode.CUSTOMER_PHONE_ALREADY_EXISTS,
+            message=str(exc),
+        ) from exc
     except CustomerNotFoundError as exc:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        raise ApiError(
+            status_code=status.HTTP_404_NOT_FOUND,
+            code=ErrorCode.CUSTOMER_NOT_FOUND,
+            message=str(exc),
+        ) from exc
     except CustomerRegistrationError as exc:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        raise ApiError(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code=ErrorCode.BUSINESS_RULE_ERROR,
+            message=str(exc),
+        ) from exc
+    except ValueError as exc:
+        db.rollback()
+        raise ApiError(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code=ErrorCode.BUSINESS_RULE_ERROR,
+            message=str(exc),
+        ) from exc
 
 
 @router.post(
@@ -143,10 +196,18 @@ def create_customer_alias(customer_id: UUID, payload: CustomerAliasCreate, db: D
         return alias
     except CustomerNotFoundError as exc:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        raise ApiError(
+            status_code=status.HTTP_404_NOT_FOUND,
+            code=ErrorCode.CUSTOMER_NOT_FOUND,
+            message=str(exc),
+        ) from exc
     except CustomerRegistrationError as exc:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        raise ApiError(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code=ErrorCode.BUSINESS_RULE_ERROR,
+            message=str(exc),
+        ) from exc
 
 
 @router.post(
@@ -162,7 +223,15 @@ def create_customer_address(customer_id: UUID, payload: CustomerAddressCreate, d
         return address
     except CustomerNotFoundError as exc:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+        raise ApiError(
+            status_code=status.HTTP_404_NOT_FOUND,
+            code=ErrorCode.CUSTOMER_NOT_FOUND,
+            message=str(exc),
+        ) from exc
     except CustomerRegistrationError as exc:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        raise ApiError(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code=ErrorCode.BUSINESS_RULE_ERROR,
+            message=str(exc),
+        ) from exc
