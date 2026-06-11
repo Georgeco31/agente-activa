@@ -36,6 +36,7 @@ cuenta con su base tecnica y visual. Los bloques completados son:
 - Bloque 5B: respuestas de error uniformes y manejo seguro de errores inesperados.
 - Bloque 6A: guias de uso de API y pruebas.
 - Bloque 6B: base del panel administrativo con Next.js y conexion server-side a FastAPI.
+- Bloque 6C: modulo administrativo funcional de clientes.
 
 Validacion actual:
 
@@ -80,6 +81,8 @@ Validacion actual:
 - Base responsive del panel administrativo.
 - Cliente HTTP centralizado y server-only para FastAPI.
 - Vista de health del backend desde el panel.
+- Busqueda, creacion y detalle de clientes desde el panel.
+- Deteccion de duplicados y asociacion de telefonos, alias y direcciones.
 
 ## Estructura del proyecto
 
@@ -268,7 +271,7 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 ## Roadmap pendiente
 
-- Implementacion funcional de modulos del panel administrativo.
+- Implementacion funcional de productos y pedidos en el panel administrativo.
 - Integracion futura con agente de WhatsApp.
 - Autenticacion y autorizacion.
 - Reportes operativos.

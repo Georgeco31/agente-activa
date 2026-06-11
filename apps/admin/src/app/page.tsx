@@ -15,7 +15,7 @@ export default function Home() {
       description: "Consulta y administracion de clientes, telefonos, alias y direcciones.",
       href: "/customers",
       icon: UsersRound,
-      status: "Base preparada",
+      status: "Modulo funcional",
     },
     {
       title: "Productos",
