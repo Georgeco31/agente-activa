@@ -2,9 +2,9 @@
 
 ## Estado actual
 
-Los Bloques 6B, 6C, 6D y 6E-B establecen la base tecnica y visual del panel
+Los Bloques 6B, 6C, 6D, 6E-B y 7A establecen la base tecnica y visual del panel
 administrativo de Agente Activa e implementan los modulos funcionales de
-clientes, productos y pedidos.
+clientes, productos, pedidos y el dashboard operativo.
 
 Incluye:
 
@@ -26,6 +26,8 @@ Incluye:
 - Filtros explicitos de pedidos por cliente y estado.
 - Creacion de pedidos conectando clientes, direcciones y productos activos.
 - Detalle, cambio de estado y cancelacion de pedidos.
+- Dashboard operativo obtenido mediante una sola consulta server-side.
+- Metricas diarias, ventas entregadas, alertas y ultimos pedidos.
 
 ## Requisitos locales
 
@@ -87,6 +89,35 @@ Archivos principales:
 - `src/app/orders/page.tsx`: listado operativo y filtros.
 - `src/app/orders/new/page.tsx`: seleccion de cliente y creacion.
 - `src/app/orders/[orderId]/page.tsx`: detalle, estado y cancelacion.
+- `src/lib/api/dashboard.ts`: acceso server-only al resumen operativo.
+- `src/lib/api/dashboard-types.ts`: contrato TypeScript del dashboard.
+- `src/app/page.tsx`: dashboard operativo server-side.
+- `src/components/dashboard/`: componentes visuales del resumen.
+
+## Dashboard operativo
+
+La pagina principal consume exclusivamente `GET /api/v1/dashboard/overview`.
+FastAPI calcula conteos, sumas y agrupaciones mediante consultas SQL agregadas.
+Next.js recibe un contrato listo para presentar y no consulta por separado
+clientes, productos ni pedidos.
+
+El dashboard permite seleccionar una fecha diaria y un mes de ventas mediante
+un formulario GET. Cada envio produce una nueva renderizacion server-side; no
+existe polling, carga mediante `useEffect` ni comunicacion directa desde el
+navegador hacia FastAPI.
+
+Incluye:
+
+- Pedidos del dia y distribucion por estado.
+- Ventas del dia y del mes.
+- Grafico CSS de ventas entregadas por dia.
+- Conteo de productos activos y clientes.
+- Alertas operativas simples.
+- Ultimos pedidos con informacion util para despacho.
+
+Una venta realizada corresponde exclusivamente a un pedido cuyo estado actual
+es `entregado`. Como el modelo todavia no contiene `delivered_at`, las ventas
+del dia y del mes se agrupan usando `created_at`.
 
 ## Modulo de clientes
 

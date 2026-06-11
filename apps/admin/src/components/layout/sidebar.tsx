@@ -60,9 +60,9 @@ export function Sidebar() {
       </nav>
 
       <p className="sidebar-footer">
-        Bloque 6E-B
+        Bloque 7A
         <br />
-        Modulos operativos
+        Dashboard operativo
       </p>
     </aside>
   );

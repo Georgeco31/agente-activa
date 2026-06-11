@@ -32,6 +32,40 @@ Respuesta exitosa:
 
 Este endpoint también comprueba que la API puede consultar PostgreSQL.
 
+## Dashboard
+
+### Consultar resumen operativo
+
+`GET /api/v1/dashboard/overview`
+
+El endpoint concentra las metricas necesarias para el dashboard en una sola
+respuesta. Sin parametros utiliza la fecha y el mes actuales de Ecuador.
+
+```powershell
+Invoke-RestMethod http://localhost:8000/api/v1/dashboard/overview
+```
+
+Tambien permite consultar una fecha diaria y un mes especificos:
+
+```powershell
+Invoke-RestMethod `
+  "http://localhost:8000/api/v1/dashboard/overview?date=2026-06-11&year=2026&month=6"
+```
+
+La respuesta incluye:
+
+- resumen de pedidos del dia;
+- conteos por estado;
+- ventas del dia y del mes;
+- ventas entregadas por dia del mes;
+- productos activos y clientes;
+- ultimos pedidos enriquecidos para despacho;
+- alertas operativas simples.
+
+Una venta se contabiliza solamente cuando el estado actual del pedido es
+`entregado`. Debido a que todavia no existe `delivered_at`, el dia y mes de la
+venta se determinan usando la fecha de creacion `created_at` del pedido.
+
 ## Clientes
 
 Los teléfonos móviles ecuatorianos se normalizan al formato E.164. Por ejemplo,

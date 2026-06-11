@@ -40,10 +40,11 @@ cuenta con su base tecnica y visual. Los bloques completados son:
 - Bloque 6D: modulo administrativo funcional de productos.
 - Bloque 6E-A: respuestas de pedidos enriquecidas para despacho sin N+1.
 - Bloque 6E-B: modulo administrativo funcional de pedidos.
+- Bloque 7A: dashboard operativo optimizado.
 
 Validacion actual:
 
-- `docker compose exec api python -m pytest`: 99 pruebas aprobadas.
+- `docker compose exec api python -m pytest`: 106 pruebas aprobadas.
 - `docker compose exec api python -m ruff check app tests`: todos los chequeos aprobados.
 - `GET /api/v1/health`: responde `status: ok` y `database: ok`.
 
@@ -89,6 +90,8 @@ Validacion actual:
 - Listado, busqueda, creacion, detalle, actualizacion y desactivacion de productos.
 - Listado, filtros, creacion, detalle, cambio de estado y cancelacion de pedidos.
 - Datos enriquecidos de cliente y direccion para despacho sin consultas N+1.
+- Dashboard operativo con metricas agregadas, ventas entregadas, alertas y
+  ultimos pedidos mediante una sola llamada server-side.
 
 ## Estructura del proyecto
 
@@ -238,6 +241,10 @@ Las validaciones de entrada responden con estado `422` y codigo
 ### Health
 
 - `GET /api/v1/health`
+
+### Dashboard
+
+- `GET /api/v1/dashboard/overview`
 
 ### Clientes
 
