@@ -1,11 +1,11 @@
-import type { CustomerActionState } from "@/lib/api/customer-types";
+import type { ActionState } from "@/lib/action-state";
 
 import { ErrorMessage } from "@/components/ui/error-message";
 
 export function ActionMessage({
   state,
 }: {
-  state: CustomerActionState<unknown>;
+  state: ActionState<unknown>;
 }) {
   if (state.status === "idle") {
     return null;

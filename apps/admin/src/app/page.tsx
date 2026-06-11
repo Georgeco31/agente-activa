@@ -22,7 +22,7 @@ export default function Home() {
       description: "Catalogo operativo, precios y disponibilidad de productos.",
       href: "/products",
       icon: Boxes,
-      status: "Base preparada",
+      status: "Modulo funcional",
     },
     {
       title: "Pedidos",
@@ -85,7 +85,7 @@ export default function Home() {
             <p className="eyebrow">Modulos</p>
             <h2>Areas de trabajo</h2>
           </div>
-          <span className="section-note">Implementacion funcional en proximos bloques</span>
+          <span className="section-note">Clientes y productos ya operativos</span>
         </div>
         <div className="module-grid">
           {modules.map((module) => {

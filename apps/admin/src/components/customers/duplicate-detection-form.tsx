@@ -6,12 +6,12 @@ import { useActionState } from "react";
 import { detectDuplicatesAction } from "@/app/customers/actions";
 import { DuplicateCandidates } from "@/components/customers/duplicate-candidates";
 import { ActionMessage } from "@/components/ui/action-message";
+import type { ActionState } from "@/lib/action-state";
 import type {
-  CustomerActionState,
   DuplicateDetectionResult,
 } from "@/lib/api/customer-types";
 
-const initialState: CustomerActionState<DuplicateDetectionResult[]> = {
+const initialState: ActionState<DuplicateDetectionResult[]> = {
   status: "idle",
   message: "",
 };

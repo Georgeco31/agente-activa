@@ -37,6 +37,7 @@ cuenta con su base tecnica y visual. Los bloques completados son:
 - Bloque 6A: guias de uso de API y pruebas.
 - Bloque 6B: base del panel administrativo con Next.js y conexion server-side a FastAPI.
 - Bloque 6C: modulo administrativo funcional de clientes.
+- Bloque 6D: modulo administrativo funcional de productos.
 
 Validacion actual:
 
@@ -83,6 +84,7 @@ Validacion actual:
 - Vista de health del backend desde el panel.
 - Busqueda, creacion y detalle de clientes desde el panel.
 - Deteccion de duplicados y asociacion de telefonos, alias y direcciones.
+- Listado, busqueda, creacion, detalle, actualizacion y desactivacion de productos.
 
 ## Estructura del proyecto
 
@@ -271,7 +273,7 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 ## Roadmap pendiente
 
-- Implementacion funcional de productos y pedidos en el panel administrativo.
+- Implementacion funcional de pedidos en el panel administrativo.
 - Integracion futura con agente de WhatsApp.
 - Autenticacion y autorizacion.
 - Reportes operativos.
@@ -287,6 +289,6 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 ## Funcionalidades aun no implementadas
 
-El agente de WhatsApp, los flujos completos del panel administrativo, la
-autenticacion, los reportes y la gestion avanzada de rutas o repartidores
-todavia no forman parte del MVP actual.
+El agente de WhatsApp, el modulo visual de pedidos, la autenticacion, los
+reportes y la gestion avanzada de rutas o repartidores todavia no forman parte
+del MVP actual.

@@ -9,22 +9,22 @@ import {
   addPhoneAction,
 } from "@/app/customers/actions";
 import { ActionMessage } from "@/components/ui/action-message";
+import type { ActionState } from "@/lib/action-state";
 import type {
-  CustomerActionState,
   CustomerAddress,
   CustomerAlias,
   CustomerPhone,
 } from "@/lib/api/customer-types";
 
-const initialPhoneState: CustomerActionState<CustomerPhone> = {
+const initialPhoneState: ActionState<CustomerPhone> = {
   status: "idle",
   message: "",
 };
-const initialAliasState: CustomerActionState<CustomerAlias> = {
+const initialAliasState: ActionState<CustomerAlias> = {
   status: "idle",
   message: "",
 };
-const initialAddressState: CustomerActionState<CustomerAddress> = {
+const initialAddressState: ActionState<CustomerAddress> = {
   status: "idle",
   message: "",
 };

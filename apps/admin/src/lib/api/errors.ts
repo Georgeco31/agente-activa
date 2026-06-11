@@ -63,6 +63,9 @@ const FRIENDLY_MESSAGES: Record<string, string> = {
   CUSTOMER_PHONE_ALREADY_EXISTS: "Ese telefono ya esta registrado para otro cliente.",
   INTERNAL_CLIENT_ERROR: "Ocurrio un error inesperado en el panel.",
   INTERNAL_SERVER_ERROR: "La API encontro un error inesperado.",
+  PRODUCT_INVALID_PRICE: "El precio del producto no es valido.",
+  PRODUCT_NOT_FOUND: "El producto solicitado no existe.",
+  PRODUCT_SKU_ALREADY_EXISTS: "Ese SKU ya esta registrado para otro producto.",
   VALIDATION_ERROR: "Revisa los datos ingresados e intenta nuevamente.",
 };
 

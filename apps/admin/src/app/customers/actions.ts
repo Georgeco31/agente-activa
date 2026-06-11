@@ -2,12 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 
+import type { ActionState } from "@/lib/action-state";
 import type {
   AddAddressInput,
   AddAliasInput,
   AddPhoneInput,
   Customer,
-  CustomerActionState,
   CustomerAddress,
   CustomerAlias,
   CustomerCreateInput,
@@ -41,7 +41,7 @@ function checkboxValue(formData: FormData, key: string): boolean {
 function validationError<T>(
   field: string,
   message: string,
-): CustomerActionState<T> {
+): ActionState<T> {
   return {
     status: "error",
     message,
@@ -55,7 +55,7 @@ function validationError<T>(
   };
 }
 
-function apiErrorState<T>(error: unknown): CustomerActionState<T> {
+function apiErrorState<T>(error: unknown): ActionState<T> {
   const detail = toApiErrorDetail(error);
   return {
     status: "error",
@@ -65,9 +65,9 @@ function apiErrorState<T>(error: unknown): CustomerActionState<T> {
 }
 
 export async function createCustomerAction(
-  _previousState: CustomerActionState<Customer>,
+  _previousState: ActionState<Customer>,
   formData: FormData,
-): Promise<CustomerActionState<Customer>> {
+): Promise<ActionState<Customer>> {
   const displayName = optionalText(formData, "display_name");
   if (!displayName) {
     return validationError("display_name", "El nombre es obligatorio.");
@@ -99,9 +99,9 @@ export async function createCustomerAction(
 }
 
 export async function detectDuplicatesAction(
-  _previousState: CustomerActionState<DuplicateDetectionResult[]>,
+  _previousState: ActionState<DuplicateDetectionResult[]>,
   formData: FormData,
-): Promise<CustomerActionState<DuplicateDetectionResult[]>> {
+): Promise<ActionState<DuplicateDetectionResult[]>> {
   const input: DuplicateDetectionInput = {
     name: optionalText(formData, "name"),
     phone: optionalText(formData, "phone"),
@@ -131,9 +131,9 @@ export async function detectDuplicatesAction(
 
 export async function addPhoneAction(
   customerId: string,
-  _previousState: CustomerActionState<CustomerPhone>,
+  _previousState: ActionState<CustomerPhone>,
   formData: FormData,
-): Promise<CustomerActionState<CustomerPhone>> {
+): Promise<ActionState<CustomerPhone>> {
   const phone = optionalText(formData, "phone");
   if (!phone) {
     return validationError("phone", "El telefono es obligatorio.");
@@ -161,9 +161,9 @@ export async function addPhoneAction(
 
 export async function addAliasAction(
   customerId: string,
-  _previousState: CustomerActionState<CustomerAlias>,
+  _previousState: ActionState<CustomerAlias>,
   formData: FormData,
-): Promise<CustomerActionState<CustomerAlias>> {
+): Promise<ActionState<CustomerAlias>> {
   const alias = optionalText(formData, "alias");
   if (!alias) {
     return validationError("alias", "El alias es obligatorio.");
@@ -189,9 +189,9 @@ export async function addAliasAction(
 
 export async function addAddressAction(
   customerId: string,
-  _previousState: CustomerActionState<CustomerAddress>,
+  _previousState: ActionState<CustomerAddress>,
   formData: FormData,
-): Promise<CustomerActionState<CustomerAddress>> {
+): Promise<ActionState<CustomerAddress>> {
   const address = optionalText(formData, "address");
   if (!address) {
     return validationError("address", "La direccion es obligatoria.");

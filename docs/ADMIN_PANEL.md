@@ -2,9 +2,10 @@
 
 ## Estado actual
 
-Los Bloques 6B y 6C establecen la base tecnica y visual del panel administrativo
-de Agente Activa e implementan el primer modulo funcional: clientes. Los modulos
-de productos y pedidos todavia son rutas preparadas sin flujos completos.
+Los Bloques 6B, 6C y 6D establecen la base tecnica y visual del panel
+administrativo de Agente Activa e implementan los modulos funcionales de
+clientes y productos. El modulo de pedidos todavia es una ruta preparada sin
+flujos completos.
 
 Incluye:
 
@@ -19,6 +20,9 @@ Incluye:
 - Deteccion y presentacion de posibles duplicados.
 - Vista de detalle de cliente.
 - Asociacion de telefonos, alias y direcciones.
+- Listado y filtro de productos activos.
+- Busqueda explicita de productos por nombre o SKU.
+- Registro, detalle, actualizacion y desactivacion de productos.
 
 ## Requisitos locales
 
@@ -69,6 +73,11 @@ Archivos principales:
 - `src/app/customers/actions.ts`: mutaciones server-side.
 - `src/app/customers/page.tsx`: busqueda, creacion y deteccion de duplicados.
 - `src/app/customers/[customerId]/page.tsx`: detalle y asociacion de datos.
+- `src/lib/api/products.ts`: acceso centralizado a endpoints de productos.
+- `src/lib/api/product-types.ts`: contratos TypeScript del modulo.
+- `src/app/products/actions.ts`: mutaciones server-side de productos.
+- `src/app/products/page.tsx`: listado, busqueda y creacion.
+- `src/app/products/[productId]/page.tsx`: detalle, edicion y desactivacion.
 
 ## Modulo de clientes
 
@@ -88,6 +97,26 @@ Operaciones disponibles:
 - Detectar posibles duplicados y mostrar razones, score y confianza.
 - Consultar detalle, telefonos, alias y direcciones.
 - Agregar telefonos, alias y direcciones a un cliente existente.
+- Mostrar errores uniformes enviados por FastAPI.
+
+## Modulo de productos
+
+El listado y la busqueda se cargan desde Server Components. El listado puede
+filtrar solo productos activos y la busqueda se ejecuta unicamente cuando el
+usuario envia el formulario por nombre o SKU.
+
+Las operaciones de creacion, actualizacion y desactivacion usan Server Actions.
+El panel envia exclusivamente los campos aceptados por FastAPI y conserva
+`price` como string en el contrato TypeScript.
+
+Operaciones disponibles:
+
+- Listar todos los productos o solo los activos.
+- Buscar por nombre o SKU.
+- Crear productos con SKU, nombre, unidad, precio, descripcion y estado.
+- Consultar el detalle real del producto.
+- Actualizar los campos permitidos por FastAPI.
+- Desactivar productos sin borrado fisico.
 - Mostrar errores uniformes enviados por FastAPI.
 
 ## Ejecutar localmente
@@ -127,7 +156,7 @@ Invoke-RestMethod http://localhost:8000/api/v1/health
 
 ## Limites actuales
 
-- No implementa flujos visuales de productos o pedidos.
+- No implementa flujos visuales de pedidos.
 - No modifica el backend ni Docker Compose.
 - No agrega autenticacion.
 - No integra WhatsApp.

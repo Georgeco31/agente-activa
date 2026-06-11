@@ -60,9 +60,9 @@ export function Sidebar() {
       </nav>
 
       <p className="sidebar-footer">
-        Bloque 6C
+        Bloque 6D
         <br />
-        Clientes funcional
+        Clientes y productos
       </p>
     </aside>
   );
