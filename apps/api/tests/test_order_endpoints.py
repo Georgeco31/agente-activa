@@ -2,6 +2,8 @@ from decimal import Decimal
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
+from sqlalchemy import event
+from sqlalchemy.orm import Session
 
 
 def _create_order(
@@ -22,6 +24,23 @@ def _create_order(
     return client.post("/api/v1/orders", json=payload)
 
 
+def _assert_dispatch_context(data: dict, customer) -> None:
+    assert data["customer_id"] == str(customer.id)
+    assert data["address_id"] == str(customer.addresses[0].id)
+    assert data["customer"] == {
+        "id": str(customer.id),
+        "display_name": customer.display_name,
+        "primary_phone": (
+            next((phone.phone_e164 for phone in customer.phones if phone.is_primary), None)
+        ),
+    }
+    assert data["address"] == {
+        "id": str(customer.addresses[0].id),
+        "address": customer.addresses[0].address_text,
+        "reference": customer.addresses[0].reference,
+    }
+
+
 def test_create_order_with_one_product(
     client: TestClient, create_test_customer, create_test_product, order_statuses
 ) -> None:
@@ -40,6 +59,7 @@ def test_create_order_with_one_product(
     assert len(data["items"]) == 1
     assert data["total"] == "19.00"
     assert data["order_number"].startswith("ORD-")
+    _assert_dispatch_context(data, customer)
 
 
 def test_create_order_with_multiple_products(
@@ -235,7 +255,9 @@ def test_get_order_by_id(
     response = client.get(f"/api/v1/orders/{created['id']}")
 
     assert response.status_code == 200
-    assert response.json()["id"] == created["id"]
+    data = response.json()
+    assert data["id"] == created["id"]
+    _assert_dispatch_context(data, customer)
 
 
 def test_list_orders(
@@ -253,7 +275,86 @@ def test_list_orders(
     response = client.get("/api/v1/orders")
 
     assert response.status_code == 200
-    assert created["id"] in [order["id"] for order in response.json()]
+    orders = response.json()
+    assert created["id"] in [order["id"] for order in orders]
+    created_order = next(order for order in orders if order["id"] == created["id"])
+    _assert_dispatch_context(created_order, customer)
+
+
+def test_order_returns_null_when_customer_has_no_primary_phone(
+    client: TestClient, create_test_customer, create_test_product, order_statuses
+) -> None:
+    customer = create_test_customer(phone="0999627968")
+    customer.phones[0].is_primary = False
+    product = create_test_product(sku="ORDER-NO-PRIMARY-PHONE")
+
+    response = _create_order(
+        client,
+        customer_id=str(customer.id),
+        address_id=str(customer.addresses[0].id),
+        items=[{"product_id": str(product.id), "quantity": "1"}],
+    )
+
+    assert response.status_code == 201
+    assert response.json()["customer"]["primary_phone"] is None
+
+
+def test_list_orders_uses_bounded_queries(
+    client: TestClient,
+    db_session: Session,
+    create_test_customer,
+    create_test_product,
+    order_statuses,
+) -> None:
+    customer = create_test_customer()
+    product = create_test_product(sku="ORDER-QUERY-COUNT")
+    _create_order(
+        client,
+        customer_id=str(customer.id),
+        address_id=str(customer.addresses[0].id),
+        items=[{"product_id": str(product.id), "quantity": "1"}],
+    )
+
+    connection = db_session.connection()
+
+    def count_list_queries() -> int:
+        statements: list[str] = []
+
+        def count_selects(
+            _connection,
+            _cursor,
+            statement,
+            _parameters,
+            _context,
+            _executemany,
+        ) -> None:
+            if statement.lstrip().upper().startswith("SELECT"):
+                statements.append(statement)
+
+        db_session.expire_all()
+        event.listen(connection, "before_cursor_execute", count_selects)
+        try:
+            response = client.get("/api/v1/orders")
+        finally:
+            event.remove(connection, "before_cursor_execute", count_selects)
+
+        assert response.status_code == 200
+        return len(statements)
+
+    single_order_query_count = count_list_queries()
+
+    for index in range(2):
+        _create_order(
+            client,
+            customer_id=str(customer.id),
+            address_id=str(customer.addresses[0].id),
+            items=[{"product_id": str(product.id), "quantity": str(index + 2)}],
+        )
+
+    multiple_orders_query_count = count_list_queries()
+
+    assert single_order_query_count <= 6
+    assert multiple_orders_query_count == single_order_query_count
 
 
 def test_filter_orders_by_customer(

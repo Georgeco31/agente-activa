@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class OrderItemCreate(BaseModel):
@@ -32,6 +32,38 @@ class OrderStatusResponse(BaseModel):
     is_final: bool
 
 
+class OrderCustomerResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    display_name: str
+    primary_phone: str | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_primary_phone(cls, value):
+        if isinstance(value, dict):
+            return value
+
+        primary_phone = next(
+            (phone.phone_e164 for phone in value.phones if phone.is_primary),
+            None,
+        )
+        return {
+            "id": value.id,
+            "display_name": value.display_name,
+            "primary_phone": primary_phone,
+        }
+
+
+class OrderAddressResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    address: str = Field(validation_alias="address_text")
+    reference: str | None
+
+
 class OrderItemResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -50,6 +82,8 @@ class OrderResponse(BaseModel):
     order_number: str
     customer_id: UUID
     address_id: UUID = Field(validation_alias="customer_address_id")
+    customer: OrderCustomerResponse
+    address: OrderAddressResponse = Field(validation_alias="customer_address")
     status: OrderStatusResponse
     delivery_route_id: UUID | None
     notes: str | None

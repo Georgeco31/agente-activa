@@ -14,6 +14,15 @@ from app.models.order_status import OrderStatus
 from app.models.product import Product
 
 
+def _order_load_options():
+    return (
+        selectinload(Order.items),
+        selectinload(Order.status),
+        selectinload(Order.customer).selectinload(Customer.phones),
+        selectinload(Order.customer_address),
+    )
+
+
 def get_customer_by_id(db: Session, customer_id: UUID) -> Customer | None:
     return db.scalar(select(Customer).where(Customer.id == customer_id))
 
@@ -94,11 +103,7 @@ def create_order_item(
 
 
 def get_order_by_id(db: Session, order_id: UUID) -> Order | None:
-    statement = (
-        select(Order)
-        .options(selectinload(Order.items), selectinload(Order.status))
-        .where(Order.id == order_id)
-    )
+    statement = select(Order).options(*_order_load_options()).where(Order.id == order_id)
     return db.scalar(statement)
 
 
@@ -108,7 +113,7 @@ def list_orders(
     customer_id: UUID | None = None,
     status_code: str | None = None,
 ) -> list[Order]:
-    statement = select(Order).options(selectinload(Order.items), selectinload(Order.status))
+    statement = select(Order).options(*_order_load_options())
 
     if customer_id is not None:
         statement = statement.where(Order.customer_id == customer_id)
