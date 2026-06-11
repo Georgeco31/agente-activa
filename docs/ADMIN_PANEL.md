@@ -2,10 +2,9 @@
 
 ## Estado actual
 
-Los Bloques 6B, 6C y 6D establecen la base tecnica y visual del panel
+Los Bloques 6B, 6C, 6D y 6E-B establecen la base tecnica y visual del panel
 administrativo de Agente Activa e implementan los modulos funcionales de
-clientes y productos. El modulo de pedidos todavia es una ruta preparada sin
-flujos completos.
+clientes, productos y pedidos.
 
 Incluye:
 
@@ -23,6 +22,10 @@ Incluye:
 - Listado y filtro de productos activos.
 - Busqueda explicita de productos por nombre o SKU.
 - Registro, detalle, actualizacion y desactivacion de productos.
+- Listado de pedidos con informacion humana para despacho.
+- Filtros explicitos de pedidos por cliente y estado.
+- Creacion de pedidos conectando clientes, direcciones y productos activos.
+- Detalle, cambio de estado y cancelacion de pedidos.
 
 ## Requisitos locales
 
@@ -78,6 +81,12 @@ Archivos principales:
 - `src/app/products/actions.ts`: mutaciones server-side de productos.
 - `src/app/products/page.tsx`: listado, busqueda y creacion.
 - `src/app/products/[productId]/page.tsx`: detalle, edicion y desactivacion.
+- `src/lib/api/orders.ts`: acceso centralizado a endpoints de pedidos.
+- `src/lib/api/order-types.ts`: contratos TypeScript del modulo.
+- `src/app/orders/actions.ts`: mutaciones server-side de pedidos.
+- `src/app/orders/page.tsx`: listado operativo y filtros.
+- `src/app/orders/new/page.tsx`: seleccion de cliente y creacion.
+- `src/app/orders/[orderId]/page.tsx`: detalle, estado y cancelacion.
 
 ## Modulo de clientes
 
@@ -97,6 +106,30 @@ Operaciones disponibles:
 - Detectar posibles duplicados y mostrar razones, score y confianza.
 - Consultar detalle, telefonos, alias y direcciones.
 - Agregar telefonos, alias y direcciones a un cliente existente.
+- Mostrar errores uniformes enviados por FastAPI.
+
+## Modulo de pedidos
+
+El listado usa una unica consulta server-side por render y aprovecha la
+respuesta enriquecida de FastAPI. Presenta numero de pedido, cliente, telefono
+principal, direccion, referencia, estado, total y fecha sin realizar consultas
+adicionales por pedido.
+
+Los filtros por `customer_id` y `status_code` se ejecutan unicamente al enviar
+el formulario. La creacion usa una busqueda explicita de cliente, carga
+controlada de su detalle y productos activos, y un editor local para agregar o
+quitar items sin llamadas HTTP desde el navegador.
+
+Operaciones disponibles:
+
+- Listar pedidos con informacion util para despacho.
+- Filtrar por cliente y estado.
+- Buscar y seleccionar clientes de forma explicita.
+- Seleccionar una direccion real del cliente.
+- Crear pedidos con uno o varios productos activos.
+- Consultar detalle, items, importes y datos tecnicos.
+- Cambiar estado de pedidos no finalizados.
+- Cancelar pedidos mediante la accion especifica.
 - Mostrar errores uniformes enviados por FastAPI.
 
 ## Modulo de productos
@@ -156,7 +189,6 @@ Invoke-RestMethod http://localhost:8000/api/v1/health
 
 ## Limites actuales
 
-- No implementa flujos visuales de pedidos.
 - No modifica el backend ni Docker Compose.
 - No agrega autenticacion.
 - No integra WhatsApp.

@@ -29,7 +29,7 @@ export default function Home() {
       description: "Registro, consulta y seguimiento de estados de pedidos.",
       href: "/orders",
       icon: ClipboardList,
-      status: "Base preparada",
+      status: "Modulo funcional",
     },
   ];
 
@@ -85,7 +85,7 @@ export default function Home() {
             <p className="eyebrow">Modulos</p>
             <h2>Areas de trabajo</h2>
           </div>
-          <span className="section-note">Clientes y productos ya operativos</span>
+          <span className="section-note">Clientes, productos y pedidos operativos</span>
         </div>
         <div className="module-grid">
           {modules.map((module) => {

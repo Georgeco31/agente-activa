@@ -38,10 +38,12 @@ cuenta con su base tecnica y visual. Los bloques completados son:
 - Bloque 6B: base del panel administrativo con Next.js y conexion server-side a FastAPI.
 - Bloque 6C: modulo administrativo funcional de clientes.
 - Bloque 6D: modulo administrativo funcional de productos.
+- Bloque 6E-A: respuestas de pedidos enriquecidas para despacho sin N+1.
+- Bloque 6E-B: modulo administrativo funcional de pedidos.
 
 Validacion actual:
 
-- `docker compose exec api python -m pytest`: 97 pruebas aprobadas.
+- `docker compose exec api python -m pytest`: 99 pruebas aprobadas.
 - `docker compose exec api python -m ruff check app tests`: todos los chequeos aprobados.
 - `GET /api/v1/health`: responde `status: ok` y `database: ok`.
 
@@ -85,6 +87,8 @@ Validacion actual:
 - Busqueda, creacion y detalle de clientes desde el panel.
 - Deteccion de duplicados y asociacion de telefonos, alias y direcciones.
 - Listado, busqueda, creacion, detalle, actualizacion y desactivacion de productos.
+- Listado, filtros, creacion, detalle, cambio de estado y cancelacion de pedidos.
+- Datos enriquecidos de cliente y direccion para despacho sin consultas N+1.
 
 ## Estructura del proyecto
 
@@ -273,7 +277,6 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 ## Roadmap pendiente
 
-- Implementacion funcional de pedidos en el panel administrativo.
 - Integracion futura con agente de WhatsApp.
 - Autenticacion y autorizacion.
 - Reportes operativos.
@@ -289,6 +292,5 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 ## Funcionalidades aun no implementadas
 
-El agente de WhatsApp, el modulo visual de pedidos, la autenticacion, los
-reportes y la gestion avanzada de rutas o repartidores todavia no forman parte
-del MVP actual.
+El agente de WhatsApp, la autenticacion, los reportes y la gestion avanzada de
+rutas o repartidores todavia no forman parte del MVP actual.
