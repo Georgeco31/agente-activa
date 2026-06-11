@@ -1,8 +1,9 @@
 # Agente Activa
 
-Agente Activa es un backend MVP para gestionar clientes, productos y pedidos de
-una empresa de venta y reparto de agua. El nucleo esta preparado para una futura
-integracion con un agente de WhatsApp que reutilice las mismas reglas de negocio.
+Agente Activa es un MVP para gestionar clientes, productos y pedidos de una
+empresa de venta y reparto de agua. Incluye un backend operativo y la base
+inicial de un panel administrativo, preparados para una futura integracion con
+un agente de WhatsApp que reutilice las mismas reglas de negocio.
 
 ## Problema que resuelve
 
@@ -20,7 +21,8 @@ trazabilidad sobre las acciones importantes del negocio.
 
 ## Estado actual
 
-El backend MVP se encuentra funcional y validado. Los bloques completados son:
+El backend MVP se encuentra funcional y validado. El panel administrativo ya
+cuenta con su base tecnica y visual. Los bloques completados son:
 
 - Bloque 1: FastAPI, Docker Compose, PostgreSQL y healthcheck.
 - Bloque 2: modelos ORM, Alembic, migracion inicial y seed de estados.
@@ -32,6 +34,8 @@ El backend MVP se encuentra funcional y validado. Los bloques completados son:
 - Bloque 4C: endpoints administrativos de pedidos.
 - Bloque 5A: documentacion base, validacion integral, Ruff y pruebas completas.
 - Bloque 5B: respuestas de error uniformes y manejo seguro de errores inesperados.
+- Bloque 6A: guias de uso de API y pruebas.
+- Bloque 6B: base del panel administrativo con Next.js y conexion server-side a FastAPI.
 
 Validacion actual:
 
@@ -50,6 +54,11 @@ Validacion actual:
 - Pytest.
 - Ruff.
 - Docker Compose.
+- Node.js y npm para desarrollo local del panel.
+- Next.js con App Router.
+- React.
+- TypeScript.
+- ESLint.
 
 ## Funcionalidades implementadas
 
@@ -68,12 +77,21 @@ Validacion actual:
 - Gestion administrativa de clientes, productos y pedidos mediante API.
 - Respuestas de error uniformes para reglas de negocio, validacion y errores inesperados.
 - Pruebas automatizadas y validacion de calidad con Ruff.
+- Base responsive del panel administrativo.
+- Cliente HTTP centralizado y server-only para FastAPI.
+- Vista de health del backend desde el panel.
 
 ## Estructura del proyecto
 
 ```text
 .
 |-- apps/
+|   |-- admin/
+|   |   |-- src/
+|   |   |   |-- app/
+|   |   |   |-- components/
+|   |   |   `-- lib/
+|   |   `-- package.json
 |   `-- api/
 |       |-- alembic/
 |       |-- app/
@@ -89,6 +107,7 @@ Validacion actual:
 |       |-- Dockerfile
 |       `-- pyproject.toml
 |-- docs/
+|   |-- ADMIN_PANEL.md
 |   |-- API_USAGE.md
 |   |-- DATA_MODEL.md
 |   |-- PRD.md
@@ -124,6 +143,28 @@ Respuesta esperada:
   "status": "ok",
   "database": "ok"
 }
+```
+
+## Ejecutar el panel administrativo
+
+Con el backend disponible, iniciar Next.js localmente en Windows:
+
+```powershell
+cd apps/admin
+npm install
+npm run dev
+```
+
+El panel queda disponible en `http://localhost:3000`. Usa
+`API_BASE_URL=http://localhost:8000` exclusivamente del lado servidor y no
+requiere cambios de CORS.
+
+Validar el frontend:
+
+```powershell
+npm run lint
+npm run typecheck
+npm run build
 ```
 
 ## Migraciones y seed
@@ -220,13 +261,14 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 - [Requisitos del producto](docs/PRD.md)
 - [Modelo de datos](docs/DATA_MODEL.md)
+- [Panel administrativo](docs/ADMIN_PANEL.md)
 - [Guía de uso de API](docs/API_USAGE.md)
 - [Guía de pruebas](docs/TESTING.md)
 - OpenAPI interactivo disponible en `http://localhost:8000/docs`.
 
 ## Roadmap pendiente
 
-- Panel administrativo con Next.js.
+- Implementacion funcional de modulos del panel administrativo.
 - Integracion futura con agente de WhatsApp.
 - Autenticacion y autorizacion.
 - Reportes operativos.
@@ -242,6 +284,6 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 ## Funcionalidades aun no implementadas
 
-El agente de WhatsApp, el panel administrativo, la autenticacion, los reportes y
-la gestion avanzada de rutas o repartidores todavia no forman parte del backend
-actual.
+El agente de WhatsApp, los flujos completos del panel administrativo, la
+autenticacion, los reportes y la gestion avanzada de rutas o repartidores
+todavia no forman parte del MVP actual.
