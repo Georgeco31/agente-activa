@@ -1,0 +1,108 @@
+# Project Rules
+
+Reglas de trabajo para mantener Agente Activa ordenado, seguro y facil de
+continuar.
+
+## Seguridad y datos
+
+- No subir archivos `.env` reales.
+- No subir API keys, tokens ni credenciales.
+- No subir datos reales de clientes.
+- No subir telefonos reales.
+- No subir direcciones reales.
+- Usar datos ficticios en documentacion, pruebas y ejemplos.
+- Revisar cuidadosamente cualquier archivo generado antes de versionarlo.
+
+## Backend
+
+- No modificar Docker Compose sin necesidad clara.
+- No cambiar modelos ORM sin evaluar si requiere migracion Alembic.
+- Si se cambia estructura de datos, crear migracion y prueba correspondiente.
+- Mantener reglas de negocio en servicios backend, no en la UI.
+- Preferir repositorios y servicios existentes antes de crear rutas directas.
+- Toda funcionalidad nueva debe tener pruebas.
+- Mantener contrato uniforme de errores.
+
+## Frontend
+
+- No romper Server Components.
+- No hacer llamadas directas desde navegador a FastAPI.
+- No usar `NEXT_PUBLIC_API_BASE_URL`.
+- No modificar CORS para resolver problemas que deben ser server-side.
+- No usar polling innecesario.
+- No hacer llamadas por cada tecla.
+- Las mutaciones deben pasar por Server Actions cuando aplique.
+- Centralizar llamadas HTTP en `apps/admin/src/lib/api/`.
+- Mantener resultados serializables entre Server Actions y cliente.
+
+## Rendimiento
+
+- No calcular metricas pesadas en frontend.
+- Preferir backend optimizado con endpoints claros.
+- Evitar N+1 en listados y dashboards.
+- Usar `selectinload` o agregaciones SQL cuando corresponda.
+- El dashboard debe consumir `GET /api/v1/dashboard/overview`, no multiples
+  endpoints de pedidos, clientes y productos.
+
+## Dependencias
+
+- No instalar dependencias nuevas sin justificar.
+- Antes de agregar una libreria, revisar si el stack actual ya resuelve el caso.
+- Si se agrega una dependencia, documentar por que y validar build/pruebas.
+
+## Diseno
+
+- Mantener identidad visual celeste y blanca.
+- Colores base:
+  - Celeste principal: `#0EA5E9`
+  - Celeste suave: `#E0F2FE`
+  - Azul agua: `#0284C7`
+  - Azul profundo: `#075985`
+  - Blanco: `#FFFFFF`
+  - Fondo claro: `#F8FCFF`
+  - Texto oscuro: `#0F172A`
+  - Bordes suaves: `#BAE6FD`
+- Mantener contraste legible.
+- Evitar saturar la pantalla.
+- Validar responsive basico cuando se cambie UI.
+
+## Documentacion
+
+- Mantener README y docs alineados con el estado real.
+- Actualizar `docs/API_USAGE.md` si cambia un endpoint.
+- Actualizar `docs/DATA_MODEL.md` si cambia estructura de datos.
+- Actualizar `docs/ADMIN_PANEL.md` si cambia el panel.
+- Actualizar `docs/TESTING.md` si cambia la forma de validar.
+- Usar ejemplos ficticios.
+
+## Flujo de validacion recomendado
+
+Backend:
+
+```bash
+docker compose exec api python -m pytest
+docker compose exec api python -m ruff check app tests
+```
+
+Frontend:
+
+```bash
+cd apps/admin
+npm run lint
+npm run typecheck
+npm run build
+```
+
+Health:
+
+```bash
+curl http://localhost:8000/api/v1/health
+```
+
+## Antes de implementar WhatsApp
+
+- Proteger el panel administrativo.
+- Definir autenticacion y sesiones.
+- Validar seguridad de API.
+- Revisar manejo de secretos.
+- Confirmar que el agente usara servicios existentes y no duplicara reglas.

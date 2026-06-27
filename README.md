@@ -121,8 +121,12 @@ Validacion actual:
 |-- docs/
 |   |-- ADMIN_PANEL.md
 |   |-- API_USAGE.md
+|   |-- CODEX_HANDOFF.md
 |   |-- DATA_MODEL.md
+|   |-- MAC_SETUP.md
 |   |-- PRD.md
+|   |-- PROJECT_RULES.md
+|   |-- ROADMAP.md
 |   `-- TESTING.md
 |-- docker-compose.yml
 `-- README.md
@@ -280,6 +284,10 @@ Las validaciones de entrada responden con estado `422` y codigo
 - [Panel administrativo](docs/ADMIN_PANEL.md)
 - [Guía de uso de API](docs/API_USAGE.md)
 - [Guía de pruebas](docs/TESTING.md)
+- [Handoff para Codex](docs/CODEX_HANDOFF.md)
+- [Setup en Mac](docs/MAC_SETUP.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Reglas del proyecto](docs/PROJECT_RULES.md)
 - OpenAPI interactivo disponible en `http://localhost:8000/docs`.
 
 ## Roadmap pendiente
