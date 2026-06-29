@@ -95,7 +95,7 @@ docker compose exec api python -m pytest
 Resultado esperado actual:
 
 ```text
-97 passed, 1 warning
+106 passed, 1 warning
 ```
 
 El warning actual de Starlette TestClient relacionado con `httpx` es una
@@ -162,6 +162,30 @@ Resultado esperado:
 ```text
 All checks passed!
 ```
+
+## Validacion frontend
+
+Desde `apps/admin`:
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+npm run dev
+```
+
+Para el panel protegido, validar manualmente:
+
+- `/customers`, `/products`, `/orders` y `/health` sin sesion redirigen a
+  `/login`.
+- `/login` con credenciales incorrectas muestra un error generico.
+- `/login` con credenciales correctas redirige a `/`.
+- `/login?next=/orders` redirige a `/orders` despues de login correcto.
+- Un usuario autenticado que entra a `/login` redirige a `/`.
+- Logout elimina la cookie y redirige a `/login`.
+- Despues de logout, `/` vuelve a redirigir a `/login`.
+- Las Server Actions de clientes, productos y pedidos no ejecutan mutaciones
+  sin sesion valida.
 
 ## Pruebas de regresión
 

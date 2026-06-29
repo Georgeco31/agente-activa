@@ -12,6 +12,8 @@ continuar.
 - No subir direcciones reales.
 - Usar datos ficticios en documentacion, pruebas y ejemplos.
 - Revisar cuidadosamente cualquier archivo generado antes de versionarlo.
+- No guardar tokens o credenciales en `localStorage` ni `sessionStorage`.
+- No exponer credenciales con variables `NEXT_PUBLIC_*`.
 
 ## Backend
 
@@ -34,6 +36,20 @@ continuar.
 - Las mutaciones deben pasar por Server Actions cuando aplique.
 - Centralizar llamadas HTTP en `apps/admin/src/lib/api/`.
 - Mantener resultados serializables entre Server Actions y cliente.
+
+## Autenticacion del panel
+
+- Usar `apps/admin/src/proxy.ts` para proteccion de rutas en Next.js 16.
+- No crear `middleware.ts` para este panel.
+- Mantener `/login` como ruta publica.
+- Proteger `/`, `/customers`, `/products`, `/orders`, `/health` y rutas internas.
+- Mantener la cookie `agente_activa_session` como `HttpOnly`, `sameSite: "lax"`,
+  `secure` solo en `production`, `path: "/"` y maxAge de 8 horas.
+- Firmar la sesion con HMAC SHA-256 usando `AUTH_SECRET`.
+- Mantener `ADMIN_PASSWORD_HASH` en formato `scrypt`.
+- No guardar contrasenas ni hashes dentro de la cookie.
+- Verificar sesion dentro de Server Actions mutantes; no confiar solo en
+  `proxy.ts`.
 
 ## Rendimiento
 
@@ -101,8 +117,7 @@ curl http://localhost:8000/api/v1/health
 
 ## Antes de implementar WhatsApp
 
-- Proteger el panel administrativo.
-- Definir autenticacion y sesiones.
+- Confirmar que el panel administrativo sigue protegido.
 - Validar seguridad de API.
 - Revisar manejo de secretos.
 - Confirmar que el agente usara servicios existentes y no duplicara reglas.

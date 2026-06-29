@@ -41,6 +41,7 @@ cuenta con su base tecnica y visual. Los bloques completados son:
 - Bloque 6E-A: respuestas de pedidos enriquecidas para despacho sin N+1.
 - Bloque 6E-B: modulo administrativo funcional de pedidos.
 - Bloque 7A: dashboard operativo optimizado.
+- Bloque 8A: seguridad y autenticacion basica del panel administrativo.
 
 Validacion actual:
 
@@ -92,6 +93,11 @@ Validacion actual:
 - Datos enriquecidos de cliente y direccion para despacho sin consultas N+1.
 - Dashboard operativo con metricas agregadas, ventas entregadas, alertas y
   ultimos pedidos mediante una sola llamada server-side.
+- Login administrativo con usuario unico configurado por variables de entorno.
+- Sesion firmada en cookie HttpOnly.
+- Proteccion de rutas del panel con `src/proxy.ts`.
+- Logout server-side que elimina la cookie de sesion.
+- Guardas de sesion en Server Actions mutantes del panel.
 
 ## Estructura del proyecto
 
@@ -163,17 +169,47 @@ Respuesta esperada:
 
 ## Ejecutar el panel administrativo
 
-Con el backend disponible, iniciar Next.js localmente en Windows:
+Con el backend disponible, configurar las variables locales del panel:
 
-```powershell
+```bash
 cd apps/admin
+cp .env.example .env.local
+```
+
+Completar en `.env.local`:
+
+```text
+API_BASE_URL=http://localhost:8000
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD_HASH=replace-with-scrypt-password-hash
+AUTH_SECRET=replace-with-random-32-byte-secret
+```
+
+Generar `AUTH_SECRET` en Mac:
+
+```bash
+openssl rand -base64 32
+```
+
+Generar `ADMIN_PASSWORD_HASH` en Mac:
+
+```bash
+read -s ADMIN_PASSWORD
+export ADMIN_PASSWORD
+node -e 'const crypto=require("node:crypto"); const password=process.env.ADMIN_PASSWORD; const salt=crypto.randomBytes(16); crypto.scrypt(password,salt,64,{N:16384,r:8,p:1},(error,key)=>{ if(error) throw error; console.log(`scrypt$16384$8$1$${salt.toString("base64url")}$${key.toString("base64url")}`); });'
+```
+
+Iniciar Next.js:
+
+```bash
 npm install
 npm run dev
 ```
 
 El panel queda disponible en `http://localhost:3000`. Usa
 `API_BASE_URL=http://localhost:8000` exclusivamente del lado servidor y no
-requiere cambios de CORS.
+requiere cambios de CORS. No se usan variables `NEXT_PUBLIC_*` para
+credenciales.
 
 Validar el frontend:
 
@@ -293,7 +329,7 @@ Las validaciones de entrada responden con estado `422` y codigo
 ## Roadmap pendiente
 
 - Integracion futura con agente de WhatsApp.
-- Autenticacion y autorizacion.
+- Autorizacion y roles futuros.
 - Reportes operativos.
 - Gestion avanzada de rutas y repartidores.
 
@@ -307,5 +343,6 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 ## Funcionalidades aun no implementadas
 
-El agente de WhatsApp, la autenticacion, los reportes y la gestion avanzada de
-rutas o repartidores todavia no forman parte del MVP actual.
+El agente de WhatsApp, roles reales, recuperacion de contrasena, OAuth, reportes
+y la gestion avanzada de rutas o repartidores todavia no forman parte del MVP
+actual.

@@ -6,6 +6,7 @@ import type { ActionState } from "@/lib/action-state";
 import { toApiErrorDetail } from "@/lib/api/errors";
 import type { Order, OrderCreateInput, OrderItemCreateInput } from "@/lib/api/order-types";
 import { cancelOrder, createOrder, updateOrderStatus } from "@/lib/api/orders";
+import { requireActionSession } from "@/lib/auth/action-guard";
 
 function textValue(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -82,6 +83,11 @@ export async function createOrderAction(
   _previousState: ActionState<Order>,
   formData: FormData,
 ): Promise<ActionState<Order>> {
+  const authError = await requireActionSession<Order>();
+  if (authError) {
+    return authError;
+  }
+
   const customerId = textValue(formData, "customer_id");
   const addressId = textValue(formData, "address_id");
 
@@ -123,6 +129,11 @@ export async function updateOrderStatusAction(
   _previousState: ActionState<Order>,
   formData: FormData,
 ): Promise<ActionState<Order>> {
+  const authError = await requireActionSession<Order>();
+  if (authError) {
+    return authError;
+  }
+
   const statusCode = textValue(formData, "status_code");
   if (!statusCode) {
     return validationError("status_code", "Selecciona un estado.");
@@ -147,6 +158,11 @@ export async function cancelOrderAction(
   _previousState: ActionState<Order>,
   formData: FormData,
 ): Promise<ActionState<Order>> {
+  const authError = await requireActionSession<Order>();
+  if (authError) {
+    return authError;
+  }
+
   if (!checkboxValue(formData, "confirm_cancel")) {
     return validationError("confirm_cancel", "Confirma que deseas cancelar el pedido.");
   }

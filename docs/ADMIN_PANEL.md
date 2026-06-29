@@ -2,9 +2,10 @@
 
 ## Estado actual
 
-Los Bloques 6B, 6C, 6D, 6E-B y 7A establecen la base tecnica y visual del panel
-administrativo de Agente Activa e implementan los modulos funcionales de
-clientes, productos, pedidos y el dashboard operativo.
+Los Bloques 6B, 6C, 6D, 6E-B, 7A y 8A establecen la base tecnica y visual del
+panel administrativo de Agente Activa, implementan los modulos funcionales de
+clientes, productos, pedidos y dashboard operativo, y protegen el panel con
+autenticacion basica de MVP.
 
 Incluye:
 
@@ -28,23 +29,54 @@ Incluye:
 - Detalle, cambio de estado y cancelacion de pedidos.
 - Dashboard operativo obtenido mediante una sola consulta server-side.
 - Metricas diarias, ventas entregadas, alertas y ultimos pedidos.
+- Pantalla publica de login.
+- Proteccion de rutas administrativas con `src/proxy.ts`.
+- Sesion firmada en cookie HttpOnly.
+- Logout server-side que elimina la cookie.
+- Guardas de sesion en Server Actions mutantes.
 
 ## Requisitos locales
 
-- Node.js y npm instalados en Windows.
+- Node.js y npm instalados.
 - Backend disponible en `http://localhost:8000`.
 
 ## Configuracion
 
-La variable `API_BASE_URL` se usa exclusivamente del lado servidor:
+La variable `API_BASE_URL` se usa exclusivamente del lado servidor. Las
+credenciales del administrador y el secreto de sesion tambien viven solo en el
+servidor:
 
 ```text
 API_BASE_URL=http://localhost:8000
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD_HASH=replace-with-scrypt-password-hash
+AUTH_SECRET=replace-with-random-32-byte-secret
 ```
 
 El ejemplo se encuentra en `apps/admin/.env.example`. No se usa
 `NEXT_PUBLIC_API_BASE_URL`, porque el navegador no debe comunicarse directamente
-con FastAPI en este bloque.
+con FastAPI en este bloque. Tampoco se usan variables `NEXT_PUBLIC_*` para
+credenciales.
+
+`ADMIN_PASSWORD_HASH` usa `scrypt` nativo de Node.js con este formato:
+
+```text
+scrypt$16384$8$1$<salt-base64url>$<hash-base64url>
+```
+
+Generar `AUTH_SECRET` en Mac:
+
+```bash
+openssl rand -base64 32
+```
+
+Generar `ADMIN_PASSWORD_HASH` en Mac:
+
+```bash
+read -s ADMIN_PASSWORD
+export ADMIN_PASSWORD
+node -e 'const crypto=require("node:crypto"); const password=process.env.ADMIN_PASSWORD; const salt=crypto.randomBytes(16); crypto.scrypt(password,salt,64,{N:16384,r:8,p:1},(error,key)=>{ if(error) throw error; console.log(`scrypt$16384$8$1$${salt.toString("base64url")}$${key.toString("base64url")}`); });'
+```
 
 Si en el futuro Next.js se ejecuta dentro de un contenedor, podria requerirse:
 
@@ -56,7 +88,8 @@ API_BASE_URL=http://host.docker.internal:8000
 
 ```text
 Navegador
-  -> Next.js App Router
+  -> Next.js proxy.ts valida sesion
+    -> Next.js App Router
     -> Server Component
       -> cliente HTTP centralizado
         -> FastAPI
@@ -69,30 +102,67 @@ el navegador. Por esta razon, el Bloque 6B no necesita modificar CORS.
 Archivos principales:
 
 - `src/lib/config.ts`: configuracion privada de `API_BASE_URL`.
+- `src/proxy.ts`: proteccion de rutas y redireccion a `/login`.
+- `src/lib/auth/session-token.ts`: firma y verificacion HMAC SHA-256 de sesion.
+- `src/lib/auth/session.ts`: lectura, creacion y eliminacion de cookie.
+- `src/lib/auth/credentials.ts`: verificacion server-side de usuario y hash.
+- `src/lib/auth/password.ts`: verificacion `scrypt` con `timingSafeEqual`.
+- `src/lib/auth/action-guard.ts`: guarda de sesion para Server Actions.
+- `src/app/login/page.tsx`: pantalla publica de login.
+- `src/app/login/actions.ts`: Server Action de autenticacion.
+- `src/app/logout/route.ts`: logout por `POST`.
+- `src/app/(protected)/layout.tsx`: shell administrativo protegido.
 - `src/lib/api/http.ts`: cliente HTTP centralizado y server-only.
 - `src/lib/api/errors.ts`: interpretacion del contrato uniforme de errores.
 - `src/lib/api/health.ts`: acceso tipado al healthcheck.
-- `src/app/health/page.tsx`: vista server-side del estado de la API.
+- `src/app/(protected)/health/page.tsx`: vista server-side del estado de la API.
 - `src/lib/api/customers.ts`: acceso centralizado a endpoints de clientes.
 - `src/lib/api/customer-types.ts`: contratos TypeScript del modulo.
 - `src/app/customers/actions.ts`: mutaciones server-side.
-- `src/app/customers/page.tsx`: busqueda, creacion y deteccion de duplicados.
-- `src/app/customers/[customerId]/page.tsx`: detalle y asociacion de datos.
+- `src/app/(protected)/customers/page.tsx`: busqueda, creacion y deteccion de duplicados.
+- `src/app/(protected)/customers/[customerId]/page.tsx`: detalle y asociacion de datos.
 - `src/lib/api/products.ts`: acceso centralizado a endpoints de productos.
 - `src/lib/api/product-types.ts`: contratos TypeScript del modulo.
 - `src/app/products/actions.ts`: mutaciones server-side de productos.
-- `src/app/products/page.tsx`: listado, busqueda y creacion.
-- `src/app/products/[productId]/page.tsx`: detalle, edicion y desactivacion.
+- `src/app/(protected)/products/page.tsx`: listado, busqueda y creacion.
+- `src/app/(protected)/products/[productId]/page.tsx`: detalle, edicion y desactivacion.
 - `src/lib/api/orders.ts`: acceso centralizado a endpoints de pedidos.
 - `src/lib/api/order-types.ts`: contratos TypeScript del modulo.
 - `src/app/orders/actions.ts`: mutaciones server-side de pedidos.
-- `src/app/orders/page.tsx`: listado operativo y filtros.
-- `src/app/orders/new/page.tsx`: seleccion de cliente y creacion.
-- `src/app/orders/[orderId]/page.tsx`: detalle, estado y cancelacion.
+- `src/app/(protected)/orders/page.tsx`: listado operativo y filtros.
+- `src/app/(protected)/orders/new/page.tsx`: seleccion de cliente y creacion.
+- `src/app/(protected)/orders/[orderId]/page.tsx`: detalle, estado y cancelacion.
 - `src/lib/api/dashboard.ts`: acceso server-only al resumen operativo.
 - `src/lib/api/dashboard-types.ts`: contrato TypeScript del dashboard.
-- `src/app/page.tsx`: dashboard operativo server-side.
+- `src/app/(protected)/page.tsx`: dashboard operativo server-side.
 - `src/components/dashboard/`: componentes visuales del resumen.
+
+## Autenticacion y sesiones
+
+`/login` es la unica pantalla publica del panel. Si el usuario ya tiene una
+sesion valida e intenta abrir `/login`, `src/proxy.ts` redirige a `/`.
+
+Las rutas administrativas `/`, `/customers`, `/products`, `/orders`, `/health`
+y sus rutas internas requieren la cookie `agente_activa_session`. Si no existe
+o no valida, `src/proxy.ts` redirige a `/login?next=<ruta>`.
+
+La cookie:
+
+- es `HttpOnly`;
+- usa `sameSite: "lax"`;
+- usa `secure` solo en `production`;
+- tiene `path: "/"`;
+- dura 8 horas;
+- contiene solo `username`, rol fijo `admin`, `iat` y `exp`;
+- se firma con HMAC SHA-256 usando `AUTH_SECRET`.
+
+El logout se ejecuta con `POST /logout`, elimina la cookie desde el servidor y
+redirige a `/login`. No se usa `localStorage`, `sessionStorage` ni credenciales
+en el navegador.
+
+Las Server Actions de clientes, productos y pedidos verifican sesion antes de
+llamar a FastAPI. Esto evita confiar solo en `proxy.ts`, porque las Server
+Actions pueden invocarse por `POST` directo.
 
 ## Dashboard operativo
 
@@ -221,6 +291,9 @@ Invoke-RestMethod http://localhost:8000/api/v1/health
 ## Limites actuales
 
 - No modifica el backend ni Docker Compose.
-- No agrega autenticacion.
 - No integra WhatsApp.
 - No expone variables privadas al navegador.
+- No implementa roles reales.
+- No implementa recuperacion de contrasena.
+- No implementa OAuth.
+- No implementa rate limiting avanzado.

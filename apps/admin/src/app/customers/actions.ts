@@ -23,6 +23,7 @@ import {
   detectDuplicateCustomers,
 } from "@/lib/api/customers";
 import { toApiErrorDetail } from "@/lib/api/errors";
+import { requireActionSession } from "@/lib/auth/action-guard";
 
 function optionalText(formData: FormData, key: string): string | undefined {
   const value = formData.get(key);
@@ -68,6 +69,11 @@ export async function createCustomerAction(
   _previousState: ActionState<Customer>,
   formData: FormData,
 ): Promise<ActionState<Customer>> {
+  const authError = await requireActionSession<Customer>();
+  if (authError) {
+    return authError;
+  }
+
   const displayName = optionalText(formData, "display_name");
   if (!displayName) {
     return validationError("display_name", "El nombre es obligatorio.");
@@ -102,6 +108,11 @@ export async function detectDuplicatesAction(
   _previousState: ActionState<DuplicateDetectionResult[]>,
   formData: FormData,
 ): Promise<ActionState<DuplicateDetectionResult[]>> {
+  const authError = await requireActionSession<DuplicateDetectionResult[]>();
+  if (authError) {
+    return authError;
+  }
+
   const input: DuplicateDetectionInput = {
     name: optionalText(formData, "name"),
     phone: optionalText(formData, "phone"),
@@ -134,6 +145,11 @@ export async function addPhoneAction(
   _previousState: ActionState<CustomerPhone>,
   formData: FormData,
 ): Promise<ActionState<CustomerPhone>> {
+  const authError = await requireActionSession<CustomerPhone>();
+  if (authError) {
+    return authError;
+  }
+
   const phone = optionalText(formData, "phone");
   if (!phone) {
     return validationError("phone", "El telefono es obligatorio.");
@@ -164,6 +180,11 @@ export async function addAliasAction(
   _previousState: ActionState<CustomerAlias>,
   formData: FormData,
 ): Promise<ActionState<CustomerAlias>> {
+  const authError = await requireActionSession<CustomerAlias>();
+  if (authError) {
+    return authError;
+  }
+
   const alias = optionalText(formData, "alias");
   if (!alias) {
     return validationError("alias", "El alias es obligatorio.");
@@ -192,6 +213,11 @@ export async function addAddressAction(
   _previousState: ActionState<CustomerAddress>,
   formData: FormData,
 ): Promise<ActionState<CustomerAddress>> {
+  const authError = await requireActionSession<CustomerAddress>();
+  if (authError) {
+    return authError;
+  }
+
   const address = optionalText(formData, "address");
   if (!address) {
     return validationError("address", "La direccion es obligatoria.");

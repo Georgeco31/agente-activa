@@ -41,13 +41,38 @@ cp apps/api/.env.example apps/api/.env
 cp apps/admin/.env.example apps/admin/.env.local
 ```
 
-El panel usa `API_BASE_URL` solo del lado servidor. En desarrollo local en Mac:
+El panel usa `API_BASE_URL` solo del lado servidor y credenciales
+administrativas locales:
 
 ```text
 API_BASE_URL=http://localhost:8000
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD_HASH=replace-with-scrypt-password-hash
+AUTH_SECRET=replace-with-random-32-byte-secret
 ```
 
-No usar `NEXT_PUBLIC_API_BASE_URL`.
+No usar `NEXT_PUBLIC_API_BASE_URL` ni variables `NEXT_PUBLIC_*` para
+credenciales.
+
+Generar `AUTH_SECRET`:
+
+```bash
+openssl rand -base64 32
+```
+
+Generar `ADMIN_PASSWORD_HASH`:
+
+```bash
+read -s ADMIN_PASSWORD
+export ADMIN_PASSWORD
+node -e 'const crypto=require("node:crypto"); const password=process.env.ADMIN_PASSWORD; const salt=crypto.randomBytes(16); crypto.scrypt(password,salt,64,{N:16384,r:8,p:1},(error,key)=>{ if(error) throw error; console.log(`scrypt$16384$8$1$${salt.toString("base64url")}$${key.toString("base64url")}`); });'
+```
+
+El formato del hash es:
+
+```text
+scrypt$16384$8$1$<salt-base64url>$<hash-base64url>
+```
 
 ## Levantar backend y base de datos
 
@@ -103,6 +128,9 @@ URL local:
 ```text
 http://localhost:3000
 ```
+
+Abrir `/login` e ingresar con `ADMIN_USERNAME` y la contrasena usada para
+generar `ADMIN_PASSWORD_HASH`.
 
 Detener Next.js con `Ctrl + C`.
 

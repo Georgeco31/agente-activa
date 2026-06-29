@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { RefreshButton } from "@/app/health/refresh-button";
+import { RefreshButton } from "./refresh-button";
 import { StatusBadge } from "@/components/status-badge";
 import { getHealth } from "@/lib/api/health";
 

@@ -15,6 +15,7 @@ import {
   deactivateProduct,
   updateProduct,
 } from "@/lib/api/products";
+import { requireActionSession } from "@/lib/auth/action-guard";
 
 function textValue(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -83,6 +84,11 @@ export async function createProductAction(
   _previousState: ActionState<Product>,
   formData: FormData,
 ): Promise<ActionState<Product>> {
+  const authError = await requireActionSession<Product>();
+  if (authError) {
+    return authError;
+  }
+
   const required = requiredProductFields(formData);
   if ("status" in required) {
     return required;
@@ -112,6 +118,11 @@ export async function updateProductAction(
   _previousState: ActionState<Product>,
   formData: FormData,
 ): Promise<ActionState<Product>> {
+  const authError = await requireActionSession<Product>();
+  if (authError) {
+    return authError;
+  }
+
   const required = requiredProductFields(formData);
   if ("status" in required) {
     return required;
@@ -142,6 +153,11 @@ export async function deactivateProductAction(
   _previousState: ActionState<ProductDeactivateResult>,
   formData: FormData,
 ): Promise<ActionState<ProductDeactivateResult>> {
+  const authError = await requireActionSession<ProductDeactivateResult>();
+  if (authError) {
+    return authError;
+  }
+
   if (!checkboxValue(formData, "confirm_deactivate")) {
     return validationError(
       "confirm_deactivate",

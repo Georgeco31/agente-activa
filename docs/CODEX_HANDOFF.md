@@ -8,8 +8,9 @@ sin depender del historial de chat.
 
 Agente Activa / Agua Activa es un MVP para una empresa de venta y reparto de
 agua. El sistema centraliza clientes, telefonos, alias, direcciones, productos,
-pedidos y un dashboard operativo. La siguiente etapa grande sera preparar
-seguridad del panel antes de avanzar hacia el agente de ventas por WhatsApp.
+pedidos y un dashboard operativo. El panel administrativo ya esta protegido con
+autenticacion basica de MVP antes de avanzar hacia el agente de ventas por
+WhatsApp.
 
 ## Problema que resuelve
 
@@ -37,7 +38,8 @@ Docker      -> API y PostgreSQL
 
 El frontend no llama directamente a FastAPI desde el navegador. Next.js consume
 la API del lado servidor usando `API_BASE_URL`. No se usa CORS ni
-`NEXT_PUBLIC_API_BASE_URL`.
+`NEXT_PUBLIC_API_BASE_URL`. Las rutas del panel se protegen con
+`apps/admin/src/proxy.ts` y una cookie HttpOnly firmada.
 
 ## Estructura de carpetas
 
@@ -79,7 +81,8 @@ y ESLint.
 
 El panel administrativo tiene dashboard operativo, modulos de clientes,
 productos y pedidos, healthcheck visual, capa HTTP centralizada en
-`src/lib/api/http.ts` e identidad visual celeste/blanca.
+`src/lib/api/http.ts`, login administrativo, logout server-side, guardas de
+sesion en Server Actions e identidad visual celeste/blanca.
 
 ## Bloques completados
 
@@ -91,6 +94,28 @@ productos y pedidos, healthcheck visual, capa HTTP centralizada en
 6. Documentacion de API y pruebas.
 7. Panel admin Next.js con clientes, productos, pedidos y dashboard.
 8. Dashboard operativo real con una sola llamada server-side.
+9. Seguridad basica del panel: login, sesion HttpOnly, proteccion de rutas y logout.
+
+## Autenticacion del panel
+
+El panel usa un administrador unico definido por variables de entorno:
+
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD_HASH`
+- `AUTH_SECRET`
+
+`ADMIN_PASSWORD_HASH` usa formato `scrypt$16384$8$1$<salt-base64url>$<hash-base64url>`.
+`AUTH_SECRET` firma la cookie `agente_activa_session` con HMAC SHA-256.
+
+La cookie es `HttpOnly`, `sameSite: "lax"`, `secure` solo en `production`,
+`path: "/"` y expira en 8 horas. El payload contiene solo `username`, rol fijo
+`admin`, `iat` y `exp`.
+
+`/login` es publico. `/`, `/customers`, `/products`, `/orders`, `/health` y sus
+rutas internas requieren sesion valida. Si falta sesion, `proxy.ts` redirige a
+`/login?next=<ruta>`. Si un usuario autenticado abre `/login`, se redirige a
+`/`. Las Server Actions de clientes, productos y pedidos tambien verifican
+sesion antes de llamar a FastAPI.
 
 ## Endpoints principales
 
@@ -197,6 +222,9 @@ Ultima validacion conocida:
 - No usar CORS mientras el frontend no llame directo a FastAPI.
 - No hacer polling ni llamadas por tecla.
 - Dashboard consume un endpoint agregado optimizado.
+- El panel se protege con `src/proxy.ts`, no con `middleware.ts` en Next.js 16.
+- No guardar tokens ni credenciales en `localStorage` o `sessionStorage`.
+- No exponer `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH` ni `AUTH_SECRET` al cliente.
 - Mantener pruebas para nuevas funcionalidades.
 - Mantener documentacion actualizada.
 - Mantener la identidad visual celeste y blanca.
@@ -207,6 +235,8 @@ Ultima validacion conocida:
 - Docker Compose.
 - Contrato uniforme de errores.
 - Comunicacion server-side Next.js -> FastAPI.
+- Proteccion de rutas con `apps/admin/src/proxy.ts`.
+- Cookie de sesion `agente_activa_session`.
 - Regla de ventas basada en estado `entregado`.
 - Restriccion de no usar datos reales.
 - Colores y estilo base del panel.

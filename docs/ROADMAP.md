@@ -26,33 +26,35 @@ Este roadmap resume el estado del MVP y el orden recomendado para continuar.
    - alertas operativas;
    - diseno celeste y blanco;
    - una sola llamada server-side desde el frontend.
+9. Seguridad y autenticacion basica del panel:
+   - login publico en `/login`;
+   - administrador unico por variables de entorno;
+   - verificacion de `ADMIN_PASSWORD_HASH` con `scrypt`;
+   - sesion firmada en cookie HttpOnly;
+   - proteccion de rutas con `src/proxy.ts`;
+   - logout con eliminacion de cookie;
+   - guardas de sesion en Server Actions mutantes;
+   - documentacion de configuracion segura.
 
 ## Siguiente bloque recomendado
 
-### Bloque 8A: Seguridad y autenticacion del panel
+### Bloque 8B: Roles o permisos basicos
 
-Objetivo recomendado: proteger el panel administrativo antes de conectar
-WhatsApp o exponer mas funciones operativas.
+Objetivo recomendado: evaluar si el negocio necesita permisos basicos antes de
+avanzar hacia WhatsApp o exponer mas funciones operativas.
 
 Alcance sugerido:
 
-- Autenticacion basica del panel.
-- Proteccion de rutas en Next.js.
-- Sesiones.
-- Logout.
-- Validacion de variables de entorno necesarias.
-- Primer modelo de usuario si se decide persistir usuarios.
+- Roles simples si existen operadores distintos.
+- Politicas basicas de autorizacion por modulo si son necesarias.
+- Auditoria basica si el negocio requiere trazabilidad por usuario.
 - Pruebas backend y frontend acordes al alcance.
 - Documentacion de configuracion segura.
 
 ## Temas pendientes
 
-- Autenticacion.
-- Proteccion de rutas.
-- Sesiones.
 - Roles futuros.
 - Seguridad API.
-- Validacion de variables de entorno.
 - Auditoria basica.
 - Integracion futura con WhatsApp/agente.
 - Reportes avanzados.
@@ -60,11 +62,10 @@ Alcance sugerido:
 
 ## Orden recomendado
 
-1. Bloque 8A: seguridad y autenticacion del panel.
-2. Bloque 8B: roles o permisos basicos si el negocio lo requiere.
-3. Bloque 9A: preparacion de canal WhatsApp y webhook.
-4. Bloque 9B: agente conversacional usando servicios existentes.
-5. Bloque 10A: reportes operativos mas detallados.
+1. Bloque 8B: roles o permisos basicos si el negocio lo requiere.
+2. Bloque 9A: preparacion de canal WhatsApp y webhook.
+3. Bloque 9B: agente conversacional usando servicios existentes.
+4. Bloque 10A: reportes operativos mas detallados.
 
 ## Que no hacer todavia
 
@@ -73,7 +74,7 @@ Alcance sugerido:
 - No rutas avanzadas.
 - No repartidores.
 - No exportacion PDF/Excel.
-- No WhatsApp antes de proteger el panel.
+- No WhatsApp antes de confirmar seguridad y manejo de secretos.
 - No crear integraciones externas sin aislar credenciales.
 - No agregar dependencias grandes sin justificar.
 

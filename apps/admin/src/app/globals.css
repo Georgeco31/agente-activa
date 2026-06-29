@@ -190,6 +190,17 @@ a {
   border-radius: 50%;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-logout {
+  min-height: 34px;
+  padding-inline: 10px;
+}
+
 .content {
   width: min(1220px, 100%);
   margin: 0 auto;
@@ -753,6 +764,53 @@ h3 {
 
 .action-message strong {
   display: block;
+}
+
+.login-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 28px;
+  background:
+    linear-gradient(180deg, rgb(224 242 254 / 72%), rgb(248 252 255 / 92%)),
+    var(--page);
+}
+
+.login-panel {
+  width: min(440px, 100%);
+  padding: 26px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  box-shadow: 0 18px 45px rgb(7 89 133 / 12%);
+}
+
+.login-brand {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.login-brand-mark {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+.login-form {
+  display: grid;
+  gap: 14px;
+}
+
+.login-button {
+  width: 100%;
 }
 
 .error-code {
@@ -1991,11 +2049,20 @@ h3 {
 
   .topbar {
     min-height: 55px;
+    align-items: flex-start;
+    flex-direction: column;
     padding: 0 16px;
+    gap: 10px;
+    justify-content: center;
   }
 
   .topbar-context {
     display: none;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .content {
@@ -2093,5 +2160,17 @@ h3 {
 
   .icon-button {
     width: 100%;
+  }
+
+  .login-page {
+    padding: 18px;
+  }
+
+  .login-panel {
+    padding: 20px;
+  }
+
+  .login-brand {
+    flex-direction: column;
   }
 }
