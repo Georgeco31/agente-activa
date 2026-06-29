@@ -154,7 +154,7 @@ curl http://localhost:8000/api/v1/health
 Resultado esperado actual:
 
 ```text
-106 passed, 1 warning
+125 passed, 1 warning
 All checks passed!
 ```
 

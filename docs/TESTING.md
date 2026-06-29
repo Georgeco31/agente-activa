@@ -95,13 +95,19 @@ docker compose exec api python -m pytest
 Resultado esperado actual:
 
 ```text
-106 passed, 1 warning
+125 passed, 1 warning
 ```
 
 El warning actual de Starlette TestClient relacionado con `httpx` es una
 advertencia de deprecación externa y no bloquea las pruebas.
 
 ## Ejecutar pruebas por módulo
+
+### Agente conversacional interno
+
+```powershell
+docker compose exec api python -m pytest tests/test_agent_service.py tests/test_agent_endpoint.py
+```
 
 ### Normalización de teléfonos y texto
 

@@ -42,36 +42,46 @@ Este roadmap resume el estado del MVP y el orden recomendado para continuar.
    - headers defensivos en Next.js;
    - CSP prudente por ambiente;
    - documentacion de seguridad en `docs/SECURITY.md`.
+11. Nucleo conversacional backend y simulador interno:
+   - `POST /api/v1/agent/simulate-message`;
+   - deteccion basica de intenciones;
+   - extraccion simple de cantidad, producto y direccion;
+   - busqueda de cliente por telefono normalizado;
+   - consulta de productos activos y pedidos del cliente;
+   - proteccion con `AGENT_SIMULATION_TOKEN`;
+   - sin WhatsApp real, sin webhook publico y sin crear pedidos.
 
 ## Siguiente bloque recomendado
 
-### Bloque 8C: Roles o permisos basicos
+### Bloque 9B: Confirmacion y persistencia conversacional
 
-Objetivo recomendado: evaluar si el negocio necesita permisos basicos antes de
-avanzar hacia WhatsApp o exponer mas funciones operativas.
+Objetivo recomendado: agregar estado conversacional y un flujo de confirmacion
+antes de permitir que el agente cree pedidos reales.
 
 Alcance sugerido:
 
-- Roles simples si existen operadores distintos.
-- Politicas basicas de autorizacion por modulo si son necesarias.
-- Auditoria basica si el negocio requiere trazabilidad por usuario.
-- Pruebas backend y frontend acordes al alcance.
-- Documentacion de configuracion segura.
+- sesiones conversacionales internas;
+- mensajes o eventos del agente;
+- borrador de pedido o estructura equivalente;
+- confirmacion explicita antes de crear pedidos;
+- auditoria minima del flujo;
+- pruebas de persistencia y no duplicacion.
 
 ## Temas pendientes
 
 - Roles futuros.
 - Seguridad API.
 - Auditoria basica.
-- Integracion futura con WhatsApp/agente.
+- Integracion futura con WhatsApp real.
+- Persistencia conversacional del agente.
 - Reportes avanzados.
 - Gestion avanzada de rutas y repartidores.
 
 ## Orden recomendado
 
-1. Bloque 8C: roles o permisos basicos si el negocio lo requiere.
-2. Bloque 9A: preparacion de canal WhatsApp y webhook.
-3. Bloque 9B: agente conversacional usando servicios existentes.
+1. Bloque 9B: confirmacion y persistencia conversacional.
+2. Bloque 8C: roles o permisos basicos si el negocio lo requiere.
+3. Seguridad API antes de exponer webhooks publicos.
 4. Bloque 10A: reportes operativos mas detallados.
 
 ## Que no hacer todavia
@@ -81,8 +91,10 @@ Alcance sugerido:
 - No rutas avanzadas.
 - No repartidores.
 - No exportacion PDF/Excel.
-- No WhatsApp antes de confirmar seguridad y manejo de secretos.
+- No WhatsApp real antes de confirmar seguridad, firmas, rate limiting y manejo
+  de secretos.
 - No crear integraciones externas sin aislar credenciales.
+- No crear pedidos automaticamente desde el agente sin confirmacion explicita.
 - No agregar dependencias grandes sin justificar.
 
 ## Criterios para aceptar nuevos bloques

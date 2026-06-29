@@ -43,10 +43,11 @@ cuenta con su base tecnica y visual. Los bloques completados son:
 - Bloque 7A: dashboard operativo optimizado.
 - Bloque 8A: seguridad y autenticacion basica del panel administrativo.
 - Bloque 8B: endurecimiento de configuracion y headers de seguridad.
+- Bloque 9A: nucleo conversacional backend y simulador interno.
 
 Validacion actual:
 
-- `docker compose exec api python -m pytest`: 106 pruebas aprobadas.
+- `docker compose exec api python -m pytest`: 125 pruebas aprobadas.
 - `docker compose exec api python -m ruff check app tests`: todos los chequeos aprobados.
 - `GET /api/v1/health`: responde `status: ok` y `database: ok`.
 
@@ -101,6 +102,9 @@ Validacion actual:
 - Guardas de sesion en Server Actions mutantes del panel.
 - Validacion estricta de variables del panel administrativo.
 - Headers defensivos de seguridad en Next.js.
+- Nucleo conversacional backend para simulacion interna.
+- Endpoint interno que interpreta mensajes simulados, busca cliente por telefono,
+  consulta productos/pedidos y responde sin crear pedidos reales.
 
 ## Estructura del proyecto
 
@@ -129,6 +133,7 @@ Validacion actual:
 |       `-- pyproject.toml
 |-- docs/
 |   |-- ADMIN_PANEL.md
+|   |-- AGENT.md
 |   |-- API_USAGE.md
 |   |-- CODEX_HANDOFF.md
 |   |-- DATA_MODEL.md
@@ -136,6 +141,7 @@ Validacion actual:
 |   |-- PRD.md
 |   |-- PROJECT_RULES.md
 |   |-- ROADMAP.md
+|   |-- SECURITY.md
 |   `-- TESTING.md
 |-- docker-compose.yml
 `-- README.md
@@ -169,6 +175,10 @@ Respuesta esperada:
   "database": "ok"
 }
 ```
+
+Para usar el simulador interno del agente, configurar `AGENT_SIMULATION_TOKEN`
+en el entorno del backend y enviar el header `X-Agent-Simulation-Token`. Ver
+`docs/AGENT.md`.
 
 ## Ejecutar el panel administrativo
 
@@ -293,6 +303,10 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 - `GET /api/v1/dashboard/overview`
 
+### Agente interno
+
+- `POST /api/v1/agent/simulate-message`
+
 ### Clientes
 
 - `POST /api/v1/customers`
@@ -325,6 +339,7 @@ Las validaciones de entrada responden con estado `422` y codigo
 - [Requisitos del producto](docs/PRD.md)
 - [Modelo de datos](docs/DATA_MODEL.md)
 - [Panel administrativo](docs/ADMIN_PANEL.md)
+- [Agente conversacional](docs/AGENT.md)
 - [Guía de uso de API](docs/API_USAGE.md)
 - [Guía de pruebas](docs/TESTING.md)
 - [Handoff para Codex](docs/CODEX_HANDOFF.md)
@@ -336,7 +351,8 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 ## Roadmap pendiente
 
-- Integracion futura con agente de WhatsApp.
+- Integracion futura con WhatsApp real.
+- Persistencia conversacional y confirmacion de pedidos desde el agente.
 - Autorizacion y roles futuros.
 - Reportes operativos.
 - Gestion avanzada de rutas y repartidores.
@@ -353,6 +369,7 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 ## Funcionalidades aun no implementadas
 
-El agente de WhatsApp, roles reales, recuperacion de contrasena, OAuth, reportes
-y la gestion avanzada de rutas o repartidores todavia no forman parte del MVP
-actual.
+WhatsApp real, webhook publico, envio de mensajes, creacion automatica de
+pedidos desde el agente, roles reales, recuperacion de contrasena, OAuth,
+reportes y la gestion avanzada de rutas o repartidores todavia no forman parte
+del MVP actual.

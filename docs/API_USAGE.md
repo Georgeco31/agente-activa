@@ -32,6 +32,62 @@ Respuesta exitosa:
 
 Este endpoint también comprueba que la API puede consultar PostgreSQL.
 
+## Agente interno
+
+### Simular un mensaje conversacional
+
+`POST /api/v1/agent/simulate-message`
+
+Este endpoint es solo para simulacion interna del Bloque 9A. No es un webhook
+de WhatsApp, no envia mensajes reales y no crea ni cancela pedidos.
+
+Requiere configurar `AGENT_SIMULATION_TOKEN` en el backend y enviar el header
+`X-Agent-Simulation-Token`. Si el token no esta configurado o sigue siendo un
+placeholder, el endpoint falla cerrado.
+
+```powershell
+$body = @{
+  phone = "+593999999999"
+  message = "Hola, quiero un bidon de 20 litros"
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Method Post `
+  -Uri http://localhost:8000/api/v1/agent/simulate-message `
+  -ContentType "application/json" `
+  -Headers @{ "X-Agent-Simulation-Token" = $env:AGENT_SIMULATION_TOKEN } `
+  -Body $body
+```
+
+Respuesta de ejemplo:
+
+```json
+{
+  "intent": "create_order",
+  "confidence": 0.85,
+  "customer": {
+    "found": true,
+    "id": "11111111-1111-4111-8111-111111111111",
+    "display_name": "Cliente Ejemplo"
+  },
+  "extracted": {
+    "quantity": 1,
+    "product_hint": "bidon 20 litros",
+    "product_id": "22222222-2222-4222-8222-222222222222",
+    "product_name": "Bidon 20 Litros",
+    "product_price": "3.50",
+    "address_hint": null
+  },
+  "missing_fields": ["address_id"],
+  "reply": "Claro. Deseas que lo enviemos a tu direccion registrada?"
+}
+```
+
+Intenciones iniciales: `greeting`, `create_order`, `ask_price`,
+`ask_order_status`, `cancel_order`, `provide_address` y `unknown`.
+
+Mas detalles estan en `docs/AGENT.md`.
+
 ## Dashboard
 
 ### Consultar resumen operativo

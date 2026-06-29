@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     postgres_user: str = "agua_user"
     postgres_password: str = "agua_password"
     database_url: str | None = Field(default=None)
+    agent_simulation_token: str | None = Field(default=None)
 
     @cached_property
     def sqlalchemy_database_uri(self) -> str:
