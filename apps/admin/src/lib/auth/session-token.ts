@@ -1,5 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
+import { getAuthSecret } from "@/lib/admin-env";
+
 export const SESSION_COOKIE_NAME = "agente_activa_session";
 export const SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
 
@@ -18,11 +20,13 @@ export class AuthConfigurationError extends Error {
 }
 
 function getRequiredAuthSecret(): string {
-  const secret = process.env.AUTH_SECRET?.trim();
-  if (!secret || secret.includes("replace-with") || secret.length < 32) {
-    throw new AuthConfigurationError("AUTH_SECRET is required.");
+  try {
+    return getAuthSecret();
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "AUTH_SECRET is required.";
+    throw new AuthConfigurationError(message);
   }
-  return secret;
 }
 
 function getVerificationSecret(): string | null {

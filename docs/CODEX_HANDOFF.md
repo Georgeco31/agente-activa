@@ -9,8 +9,8 @@ sin depender del historial de chat.
 Agente Activa / Agua Activa es un MVP para una empresa de venta y reparto de
 agua. El sistema centraliza clientes, telefonos, alias, direcciones, productos,
 pedidos y un dashboard operativo. El panel administrativo ya esta protegido con
-autenticacion basica de MVP antes de avanzar hacia el agente de ventas por
-WhatsApp.
+autenticacion basica de MVP y headers defensivos antes de avanzar hacia el
+agente de ventas por WhatsApp.
 
 ## Problema que resuelve
 
@@ -39,7 +39,8 @@ Docker      -> API y PostgreSQL
 El frontend no llama directamente a FastAPI desde el navegador. Next.js consume
 la API del lado servidor usando `API_BASE_URL`. No se usa CORS ni
 `NEXT_PUBLIC_API_BASE_URL`. Las rutas del panel se protegen con
-`apps/admin/src/proxy.ts` y una cookie HttpOnly firmada.
+`apps/admin/src/proxy.ts` y una cookie HttpOnly firmada. La configuracion del
+panel se valida de forma estricta desde variables de entorno.
 
 ## Estructura de carpetas
 
@@ -82,7 +83,8 @@ y ESLint.
 El panel administrativo tiene dashboard operativo, modulos de clientes,
 productos y pedidos, healthcheck visual, capa HTTP centralizada en
 `src/lib/api/http.ts`, login administrativo, logout server-side, guardas de
-sesion en Server Actions e identidad visual celeste/blanca.
+sesion en Server Actions, validacion centralizada de entorno, headers de
+seguridad e identidad visual celeste/blanca.
 
 ## Bloques completados
 
@@ -95,6 +97,7 @@ sesion en Server Actions e identidad visual celeste/blanca.
 7. Panel admin Next.js con clientes, productos, pedidos y dashboard.
 8. Dashboard operativo real con una sola llamada server-side.
 9. Seguridad basica del panel: login, sesion HttpOnly, proteccion de rutas y logout.
+10. Endurecimiento de seguridad: validacion de entorno y headers defensivos.
 
 ## Autenticacion del panel
 
@@ -116,6 +119,26 @@ rutas internas requieren sesion valida. Si falta sesion, `proxy.ts` redirige a
 `/login?next=<ruta>`. Si un usuario autenticado abre `/login`, se redirige a
 `/`. Las Server Actions de clientes, productos y pedidos tambien verifican
 sesion antes de llamar a FastAPI.
+
+## Endurecimiento del panel
+
+`API_BASE_URL`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH` y `AUTH_SECRET` son
+obligatorias. `API_BASE_URL` debe ser una URL `http` o `https`; el hash debe
+usar formato `scrypt$N$r$p$salt-base64url$hash-base64url`; `AUTH_SECRET` debe
+tener al menos 32 caracteres. Los errores de configuracion no imprimen valores
+secretos.
+
+`next.config.ts` aplica headers:
+
+- `X-Content-Type-Options: nosniff`;
+- `X-Frame-Options: DENY`;
+- `Referrer-Policy: strict-origin-when-cross-origin`;
+- `Permissions-Policy` restrictiva;
+- `Content-Security-Policy`;
+- `Strict-Transport-Security` solo en `production`.
+
+La CSP de desarrollo permite lo necesario para Next dev y HMR. La documentacion
+principal de seguridad esta en `docs/SECURITY.md`.
 
 ## Endpoints principales
 
@@ -211,7 +234,8 @@ Ultima validacion conocida:
 6. `docs/DATA_MODEL.md`
 7. `docs/API_USAGE.md`
 8. `docs/ADMIN_PANEL.md`
-9. `docs/TESTING.md`
+9. `docs/SECURITY.md`
+10. `docs/TESTING.md`
 
 ## Decisiones tecnicas importantes
 
@@ -223,6 +247,10 @@ Ultima validacion conocida:
 - No hacer polling ni llamadas por tecla.
 - Dashboard consume un endpoint agregado optimizado.
 - El panel se protege con `src/proxy.ts`, no con `middleware.ts` en Next.js 16.
+- `API_BASE_URL` no tiene fallback silencioso; debe configurarse.
+- Los headers de seguridad viven en `apps/admin/next.config.ts`.
+- `npm run dev` del admin usa `next dev --webpack`; no cambiarlo sin
+  revalidar login, proxy y CSP en desarrollo local.
 - No guardar tokens ni credenciales en `localStorage` o `sessionStorage`.
 - No exponer `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH` ni `AUTH_SECRET` al cliente.
 - Mantener pruebas para nuevas funcionalidades.

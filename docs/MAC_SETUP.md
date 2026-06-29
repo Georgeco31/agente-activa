@@ -52,7 +52,8 @@ AUTH_SECRET=replace-with-random-32-byte-secret
 ```
 
 No usar `NEXT_PUBLIC_API_BASE_URL` ni variables `NEXT_PUBLIC_*` para
-credenciales.
+credenciales. `API_BASE_URL`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH` y
+`AUTH_SECRET` son obligatorias; los placeholders no permiten ejecutar el panel.
 
 Generar `AUTH_SECRET`:
 
@@ -66,6 +67,7 @@ Generar `ADMIN_PASSWORD_HASH`:
 read -s ADMIN_PASSWORD
 export ADMIN_PASSWORD
 node -e 'const crypto=require("node:crypto"); const password=process.env.ADMIN_PASSWORD; const salt=crypto.randomBytes(16); crypto.scrypt(password,salt,64,{N:16384,r:8,p:1},(error,key)=>{ if(error) throw error; console.log(`scrypt$16384$8$1$${salt.toString("base64url")}$${key.toString("base64url")}`); });'
+unset ADMIN_PASSWORD
 ```
 
 El formato del hash es:
@@ -123,6 +125,9 @@ npm install
 npm run dev
 ```
 
+El script usa `next dev --webpack` para mantener estable el desarrollo local en
+Mac.
+
 URL local:
 
 ```text
@@ -131,6 +136,8 @@ http://localhost:3000
 
 Abrir `/login` e ingresar con `ADMIN_USERNAME` y la contrasena usada para
 generar `ADMIN_PASSWORD_HASH`.
+
+Mas detalles de seguridad y produccion estan en `docs/SECURITY.md`.
 
 Detener Next.js con `Ctrl + C`.
 

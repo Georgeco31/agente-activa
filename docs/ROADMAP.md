@@ -35,10 +35,17 @@ Este roadmap resume el estado del MVP y el orden recomendado para continuar.
    - logout con eliminacion de cookie;
    - guardas de sesion en Server Actions mutantes;
    - documentacion de configuracion segura.
+10. Endurecimiento de seguridad y configuracion:
+   - validacion estricta de `API_BASE_URL`;
+   - validacion de `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH` y `AUTH_SECRET`;
+   - eliminacion del fallback silencioso de API;
+   - headers defensivos en Next.js;
+   - CSP prudente por ambiente;
+   - documentacion de seguridad en `docs/SECURITY.md`.
 
 ## Siguiente bloque recomendado
 
-### Bloque 8B: Roles o permisos basicos
+### Bloque 8C: Roles o permisos basicos
 
 Objetivo recomendado: evaluar si el negocio necesita permisos basicos antes de
 avanzar hacia WhatsApp o exponer mas funciones operativas.
@@ -62,7 +69,7 @@ Alcance sugerido:
 
 ## Orden recomendado
 
-1. Bloque 8B: roles o permisos basicos si el negocio lo requiere.
+1. Bloque 8C: roles o permisos basicos si el negocio lo requiere.
 2. Bloque 9A: preparacion de canal WhatsApp y webhook.
 3. Bloque 9B: agente conversacional usando servicios existentes.
 4. Bloque 10A: reportes operativos mas detallados.

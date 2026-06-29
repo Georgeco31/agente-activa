@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import type { ActionState } from "@/lib/action-state";
+import { AdminConfigurationError } from "@/lib/admin-env";
 import { verifyAdminCredentials } from "@/lib/auth/credentials";
 import { safeNextPath } from "@/lib/auth/redirects";
 import { AuthConfigurationError } from "@/lib/auth/session-token";
@@ -34,6 +35,20 @@ function errorState(message: string): ActionState<LoginActionResult> {
   };
 }
 
+function configurationErrorState(message: string): ActionState<LoginActionResult> {
+  return {
+    status: "error",
+    message: "La autenticacion del panel no esta configurada.",
+    error: {
+      code: "AUTH_CONFIGURATION_ERROR",
+      message: "La autenticacion del panel no esta configurada.",
+      details: {
+        errors: [{ field: "environment", message, type: "configuration" }],
+      },
+    },
+  };
+}
+
 export async function loginAction(
   _previousState: ActionState<LoginActionResult>,
   formData: FormData,
@@ -54,8 +69,11 @@ export async function loginAction(
 
     await createSession(username);
   } catch (error) {
-    if (error instanceof AuthConfigurationError) {
-      return errorState("La autenticacion del panel no esta configurada.");
+    if (
+      error instanceof AuthConfigurationError ||
+      error instanceof AdminConfigurationError
+    ) {
+      return configurationErrorState(error.message);
     }
     return errorState("No fue posible iniciar sesion.");
   }

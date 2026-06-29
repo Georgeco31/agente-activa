@@ -2,10 +2,10 @@
 
 ## Estado actual
 
-Los Bloques 6B, 6C, 6D, 6E-B, 7A y 8A establecen la base tecnica y visual del
-panel administrativo de Agente Activa, implementan los modulos funcionales de
-clientes, productos, pedidos y dashboard operativo, y protegen el panel con
-autenticacion basica de MVP.
+Los Bloques 6B, 6C, 6D, 6E-B, 7A, 8A y 8B establecen la base tecnica y visual
+del panel administrativo de Agente Activa, implementan los modulos funcionales
+de clientes, productos, pedidos y dashboard operativo, protegen el panel con
+autenticacion basica de MVP y endurecen configuracion y headers.
 
 Incluye:
 
@@ -34,6 +34,8 @@ Incluye:
 - Sesion firmada en cookie HttpOnly.
 - Logout server-side que elimina la cookie.
 - Guardas de sesion en Server Actions mutantes.
+- Validacion obligatoria de variables de entorno del panel.
+- Headers defensivos de seguridad desde Next.js.
 
 ## Requisitos locales
 
@@ -56,7 +58,8 @@ AUTH_SECRET=replace-with-random-32-byte-secret
 El ejemplo se encuentra en `apps/admin/.env.example`. No se usa
 `NEXT_PUBLIC_API_BASE_URL`, porque el navegador no debe comunicarse directamente
 con FastAPI en este bloque. Tampoco se usan variables `NEXT_PUBLIC_*` para
-credenciales.
+credenciales. `API_BASE_URL`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH` y
+`AUTH_SECRET` son obligatorias y no aceptan placeholders.
 
 `ADMIN_PASSWORD_HASH` usa `scrypt` nativo de Node.js con este formato:
 
@@ -76,6 +79,7 @@ Generar `ADMIN_PASSWORD_HASH` en Mac:
 read -s ADMIN_PASSWORD
 export ADMIN_PASSWORD
 node -e 'const crypto=require("node:crypto"); const password=process.env.ADMIN_PASSWORD; const salt=crypto.randomBytes(16); crypto.scrypt(password,salt,64,{N:16384,r:8,p:1},(error,key)=>{ if(error) throw error; console.log(`scrypt$16384$8$1$${salt.toString("base64url")}$${key.toString("base64url")}`); });'
+unset ADMIN_PASSWORD
 ```
 
 Si en el futuro Next.js se ejecuta dentro de un contenedor, podria requerirse:
@@ -102,6 +106,7 @@ el navegador. Por esta razon, el Bloque 6B no necesita modificar CORS.
 Archivos principales:
 
 - `src/lib/config.ts`: configuracion privada de `API_BASE_URL`.
+- `src/lib/admin-env.ts`: validacion centralizada de variables del panel.
 - `src/proxy.ts`: proteccion de rutas y redireccion a `/login`.
 - `src/lib/auth/session-token.ts`: firma y verificacion HMAC SHA-256 de sesion.
 - `src/lib/auth/session.ts`: lectura, creacion y eliminacion de cookie.
@@ -112,6 +117,7 @@ Archivos principales:
 - `src/app/login/actions.ts`: Server Action de autenticacion.
 - `src/app/logout/route.ts`: logout por `POST`.
 - `src/app/(protected)/layout.tsx`: shell administrativo protegido.
+- `next.config.ts`: headers de seguridad y CSP por ambiente.
 - `src/lib/api/http.ts`: cliente HTTP centralizado y server-only.
 - `src/lib/api/errors.ts`: interpretacion del contrato uniforme de errores.
 - `src/lib/api/health.ts`: acceso tipado al healthcheck.
@@ -163,6 +169,24 @@ en el navegador.
 Las Server Actions de clientes, productos y pedidos verifican sesion antes de
 llamar a FastAPI. Esto evita confiar solo en `proxy.ts`, porque las Server
 Actions pueden invocarse por `POST` directo.
+
+## Headers de seguridad
+
+Next.js envia headers defensivos para todas las rutas:
+
+- `X-Content-Type-Options: nosniff`;
+- `X-Frame-Options: DENY`;
+- `Referrer-Policy: strict-origin-when-cross-origin`;
+- `Permissions-Policy` restrictiva;
+- `Content-Security-Policy` prudente;
+- `Strict-Transport-Security` solo en `production`.
+
+La CSP de desarrollo permite `unsafe-eval` y conexiones locales necesarias para
+Next dev y HMR. La CSP de produccion evita `unsafe-eval`, conserva
+compatibilidad con scripts y estilos necesarios de Next.js, y no habilita
+conexiones al backend desde el navegador.
+
+Mas detalles estan en `docs/SECURITY.md`.
 
 ## Dashboard operativo
 
@@ -267,6 +291,9 @@ Luego iniciar el panel:
 cd apps/admin
 npm run dev
 ```
+
+`npm run dev` usa `next dev --webpack` para mantener estable la validacion local
+en Mac.
 
 Abrir `http://localhost:3000`.
 

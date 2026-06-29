@@ -174,6 +174,9 @@ npm run build
 npm run dev
 ```
 
+`npm run dev` ejecuta `next dev --webpack` para validar localmente el panel en
+Mac con respuestas HTTP estables.
+
 Para el panel protegido, validar manualmente:
 
 - `/customers`, `/products`, `/orders` y `/health` sin sesion redirigen a

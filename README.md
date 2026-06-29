@@ -42,6 +42,7 @@ cuenta con su base tecnica y visual. Los bloques completados son:
 - Bloque 6E-B: modulo administrativo funcional de pedidos.
 - Bloque 7A: dashboard operativo optimizado.
 - Bloque 8A: seguridad y autenticacion basica del panel administrativo.
+- Bloque 8B: endurecimiento de configuracion y headers de seguridad.
 
 Validacion actual:
 
@@ -98,6 +99,8 @@ Validacion actual:
 - Proteccion de rutas del panel con `src/proxy.ts`.
 - Logout server-side que elimina la cookie de sesion.
 - Guardas de sesion en Server Actions mutantes del panel.
+- Validacion estricta de variables del panel administrativo.
+- Headers defensivos de seguridad en Next.js.
 
 ## Estructura del proyecto
 
@@ -197,6 +200,7 @@ Generar `ADMIN_PASSWORD_HASH` en Mac:
 read -s ADMIN_PASSWORD
 export ADMIN_PASSWORD
 node -e 'const crypto=require("node:crypto"); const password=process.env.ADMIN_PASSWORD; const salt=crypto.randomBytes(16); crypto.scrypt(password,salt,64,{N:16384,r:8,p:1},(error,key)=>{ if(error) throw error; console.log(`scrypt$16384$8$1$${salt.toString("base64url")}$${key.toString("base64url")}`); });'
+unset ADMIN_PASSWORD
 ```
 
 Iniciar Next.js:
@@ -206,10 +210,13 @@ npm install
 npm run dev
 ```
 
-El panel queda disponible en `http://localhost:3000`. Usa
+El script `npm run dev` usa el dev server de Next.js con webpack para mantener
+la validacion local estable en Mac. El panel queda disponible en
+`http://localhost:3000`. Usa
 `API_BASE_URL=http://localhost:8000` exclusivamente del lado servidor y no
 requiere cambios de CORS. No se usan variables `NEXT_PUBLIC_*` para
-credenciales.
+credenciales. `API_BASE_URL`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH` y
+`AUTH_SECRET` son obligatorias en el entorno del panel.
 
 Validar el frontend:
 
@@ -324,6 +331,7 @@ Las validaciones de entrada responden con estado `422` y codigo
 - [Setup en Mac](docs/MAC_SETUP.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Reglas del proyecto](docs/PROJECT_RULES.md)
+- [Seguridad](docs/SECURITY.md)
 - OpenAPI interactivo disponible en `http://localhost:8000/docs`.
 
 ## Roadmap pendiente
@@ -340,6 +348,8 @@ Las validaciones de entrada responden con estado `422` y codigo
 - No agregar datos reales de clientes al repositorio.
 - Usar exclusivamente datos ficticios en documentacion y pruebas.
 - Configurar credenciales seguras por ambiente antes de desplegar.
+- Consultar [docs/SECURITY.md](docs/SECURITY.md) para generar `AUTH_SECRET`,
+  `ADMIN_PASSWORD_HASH` y revisar recomendaciones de produccion.
 
 ## Funcionalidades aun no implementadas
 

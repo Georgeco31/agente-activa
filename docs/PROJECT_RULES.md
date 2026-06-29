@@ -36,6 +36,8 @@ continuar.
 - Las mutaciones deben pasar por Server Actions cuando aplique.
 - Centralizar llamadas HTTP en `apps/admin/src/lib/api/`.
 - Mantener resultados serializables entre Server Actions y cliente.
+- Mantener `npm run dev` del admin en una configuracion validada localmente; si
+  se cambia el bundler, revalidar login, proxy, CSP y headers.
 
 ## Autenticacion del panel
 
@@ -50,6 +52,14 @@ continuar.
 - No guardar contrasenas ni hashes dentro de la cookie.
 - Verificar sesion dentro de Server Actions mutantes; no confiar solo en
   `proxy.ts`.
+- Validar `API_BASE_URL`, `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH` y
+  `AUTH_SECRET` desde `apps/admin/src/lib/admin-env.ts`.
+- No restaurar fallback silencioso para `API_BASE_URL`; debe estar configurada.
+- Mantener headers defensivos del panel en `apps/admin/next.config.ts`.
+- Mantener CSP prudente por ambiente: desarrollo debe permitir Next dev/HMR y
+  produccion no debe habilitar `unsafe-eval`.
+- Activar `Strict-Transport-Security` solo en `production`.
+- Documentar cambios de seguridad en `docs/SECURITY.md`.
 
 ## Rendimiento
 
