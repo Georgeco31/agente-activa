@@ -1,8 +1,10 @@
+from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
+from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AgentIntent(StrEnum):
@@ -13,6 +15,20 @@ class AgentIntent(StrEnum):
     CANCEL_ORDER = "cancel_order"
     PROVIDE_ADDRESS = "provide_address"
     UNKNOWN = "unknown"
+
+
+class ConversationStatus(StrEnum):
+    ACTIVE = "active"
+    WAITING_FOR_CUSTOMER = "waiting_for_customer"
+    READY_FOR_CONFIRMATION = "ready_for_confirmation"
+    CLOSED = "closed"
+    EXPIRED = "expired"
+
+
+class ConversationMessageDirection(StrEnum):
+    INBOUND = "inbound"
+    OUTBOUND = "outbound"
+    SYSTEM = "system"
 
 
 class AgentSimulationRequest(BaseModel):
@@ -42,3 +58,47 @@ class AgentSimulationResponse(BaseModel):
     extracted: AgentExtraction
     missing_fields: list[str] = Field(default_factory=list)
     reply: str
+
+
+class AgentConversationSessionSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    status: ConversationStatus
+    current_intent: AgentIntent | None = None
+
+
+class AgentConversationMessageResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    session_id: UUID
+    direction: ConversationMessageDirection
+    phone: str
+    message: str
+    intent: AgentIntent | None = None
+    confidence: Decimal | None = None
+    message_metadata: dict[str, Any] | None = None
+    created_at: datetime
+
+
+class AgentConversationSessionDetail(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    phone: str
+    normalized_phone: str
+    customer_id: UUID | None
+    status: ConversationStatus
+    current_intent: AgentIntent | None = None
+    extracted_data: dict[str, Any]
+    missing_fields: list[str]
+    last_message_at: datetime
+    created_at: datetime
+    updated_at: datetime
+    messages: list[AgentConversationMessageResponse] = Field(default_factory=list)
+
+
+class AgentConversationSimulationResponse(BaseModel):
+    session: AgentConversationSessionSummary
+    analysis: AgentSimulationResponse

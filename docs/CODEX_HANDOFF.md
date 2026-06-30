@@ -73,7 +73,8 @@ Docker Compose.
 El backend contiene modelos ORM, migraciones, seed de estados, normalizacion de
 telefonos y texto, busqueda flexible, deteccion de duplicados, registro seguro
 de clientes, endpoints de clientes/productos/pedidos/dashboard, nucleo
-conversacional de simulacion interna y contrato uniforme de errores.
+conversacional de simulacion interna, persistencia conversacional minima y
+contrato uniforme de errores.
 
 ## Frontend actual
 
@@ -100,6 +101,8 @@ seguridad e identidad visual celeste/blanca.
 10. Endurecimiento de seguridad: validacion de entorno y headers defensivos.
 11. Nucleo conversacional backend: simulador interno de mensajes, intenciones
     basicas y proteccion con `AGENT_SIMULATION_TOKEN`.
+12. Persistencia conversacional del agente: sesiones, mensajes inbound/outbound,
+    acumulacion de datos extraidos y cierre manual de sesiones.
 
 ## Autenticacion del panel
 
@@ -144,10 +147,34 @@ principal de seguridad esta en `docs/SECURITY.md`.
 
 ## Agente conversacional interno
 
-El Bloque 9A agrega un nucleo conversacional backend sin persistencia y sin
-WhatsApp real. El endpoint interno `POST /api/v1/agent/simulate-message` recibe
-`phone` y `message`, normaliza el telefono, busca el cliente, detecta intencion,
-extrae cantidad/producto/direccion y devuelve una respuesta simulada.
+El Bloque 9A agrega un nucleo conversacional backend stateless y sin WhatsApp
+real. El endpoint interno `POST /api/v1/agent/simulate-message` recibe `phone`
+y `message`, normaliza el telefono, busca el cliente, detecta intencion, extrae
+cantidad/producto/direccion y devuelve una respuesta simulada.
+
+El Bloque 9B agrega persistencia conversacional minima con las tablas
+`conversation_sessions` y `conversation_messages`. El endpoint
+`POST /api/v1/agent/simulate-conversation-message` crea o reutiliza una sesion
+abierta por telefono normalizado, guarda el mensaje inbound, guarda la respuesta
+outbound, acumula `extracted_data` sin sobrescribir datos utiles con `null` y
+recalcula `missing_fields`.
+
+Endpoints 9B:
+
+- `POST /api/v1/agent/simulate-conversation-message`
+- `GET /api/v1/agent/conversations/{session_id}`
+- `POST /api/v1/agent/conversations/{session_id}/close`
+
+Estados conversacionales:
+
+- `active`
+- `waiting_for_customer`
+- `ready_for_confirmation`
+- `closed`
+- `expired`
+
+`ready_for_confirmation` solo indica que el flujo puede pedir confirmacion
+futura. No significa que se haya creado un pedido real.
 
 Intenciones iniciales:
 
@@ -163,15 +190,16 @@ El endpoint requiere `AGENT_SIMULATION_TOKEN` y el header
 `X-Agent-Simulation-Token`. Si el token falta o es placeholder, falla cerrado.
 Si el header falta o no coincide, responde `401`. No imprime tokens reales.
 
-Restricciones importantes de 9A:
+Restricciones importantes de 9A/9B:
 
 - no crea pedidos;
 - no cancela pedidos;
+- no modifica pedidos;
 - no modifica clientes ni productos;
 - no envia mensajes reales;
 - no crea webhook publico;
 - no usa OpenAI ni APIs externas;
-- no crea tablas ni migraciones.
+- no conecta WhatsApp real.
 
 La documentacion principal del agente esta en `docs/AGENT.md`.
 
@@ -184,6 +212,9 @@ Health:
 Agente interno:
 
 - `POST /api/v1/agent/simulate-message`
+- `POST /api/v1/agent/simulate-conversation-message`
+- `GET /api/v1/agent/conversations/{session_id}`
+- `POST /api/v1/agent/conversations/{session_id}/close`
 
 Dashboard:
 
@@ -257,7 +288,7 @@ Reglas:
 
 Ultima validacion conocida:
 
-- Backend: `125 passed, 1 warning`.
+- Backend: `144 passed, 1 warning`.
 - Ruff: `All checks passed`.
 - Frontend: `npm run lint`, `npm run typecheck` y `npm run build` aprobados.
 - Healthcheck: `status ok`, `database ok`.
@@ -295,7 +326,8 @@ Ultima validacion conocida:
 - No exponer `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH` ni `AUTH_SECRET` al cliente.
 - El simulador del agente usa `AGENT_SIMULATION_TOKEN` y no debe exponerse como
   webhook publico.
-- El agente 9A no crea ni cancela pedidos; solo interpreta y consulta.
+- El agente 9A/9B no crea ni cancela pedidos reales; 9B solo persiste la
+  conversacion interna.
 - Mantener pruebas para nuevas funcionalidades.
 - Mantener documentacion actualizada.
 - Mantener la identidad visual celeste y blanca.

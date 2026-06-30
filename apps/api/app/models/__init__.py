@@ -1,4 +1,6 @@
 from app.models.action_history import ActionHistory
+from app.models.conversation_message import ConversationMessage
+from app.models.conversation_session import ConversationSession
 from app.models.customer import Customer
 from app.models.customer_address import CustomerAddress
 from app.models.customer_alias import CustomerAlias
@@ -11,6 +13,8 @@ from app.models.product import Product
 
 __all__ = [
     "ActionHistory",
+    "ConversationMessage",
+    "ConversationSession",
     "Customer",
     "CustomerAddress",
     "CustomerAlias",

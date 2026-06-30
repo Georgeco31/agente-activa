@@ -44,10 +44,11 @@ cuenta con su base tecnica y visual. Los bloques completados son:
 - Bloque 8A: seguridad y autenticacion basica del panel administrativo.
 - Bloque 8B: endurecimiento de configuracion y headers de seguridad.
 - Bloque 9A: nucleo conversacional backend y simulador interno.
+- Bloque 9B: persistencia conversacional minima del agente.
 
 Validacion actual:
 
-- `docker compose exec api python -m pytest`: 125 pruebas aprobadas.
+- `docker compose exec api python -m pytest`: 144 pruebas aprobadas.
 - `docker compose exec api python -m ruff check app tests`: todos los chequeos aprobados.
 - `GET /api/v1/health`: responde `status: ok` y `database: ok`.
 
@@ -105,6 +106,8 @@ Validacion actual:
 - Nucleo conversacional backend para simulacion interna.
 - Endpoint interno que interpreta mensajes simulados, busca cliente por telefono,
   consulta productos/pedidos y responde sin crear pedidos reales.
+- Persistencia conversacional interna con sesiones, mensajes inbound/outbound,
+  acumulacion no destructiva de datos extraidos y cierre manual de sesiones.
 
 ## Estructura del proyecto
 
@@ -177,8 +180,10 @@ Respuesta esperada:
 ```
 
 Para usar el simulador interno del agente, configurar `AGENT_SIMULATION_TOKEN`
-en el entorno del backend y enviar el header `X-Agent-Simulation-Token`. Ver
-`docs/AGENT.md`.
+en el entorno del backend y enviar el header `X-Agent-Simulation-Token`. El
+endpoint stateless es `POST /api/v1/agent/simulate-message`; el endpoint con
+persistencia conversacional es `POST /api/v1/agent/simulate-conversation-message`.
+Ver `docs/AGENT.md`.
 
 ## Ejecutar el panel administrativo
 
@@ -352,7 +357,7 @@ Las validaciones de entrada responden con estado `422` y codigo
 ## Roadmap pendiente
 
 - Integracion futura con WhatsApp real.
-- Persistencia conversacional y confirmacion de pedidos desde el agente.
+- Confirmacion conversacional de pedidos desde el agente.
 - Autorizacion y roles futuros.
 - Reportes operativos.
 - Gestion avanzada de rutas y repartidores.

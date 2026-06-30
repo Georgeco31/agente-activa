@@ -50,22 +50,33 @@ Este roadmap resume el estado del MVP y el orden recomendado para continuar.
    - consulta de productos activos y pedidos del cliente;
    - proteccion con `AGENT_SIMULATION_TOKEN`;
    - sin WhatsApp real, sin webhook publico y sin crear pedidos.
+12. Persistencia conversacional minima del agente:
+   - tablas `conversation_sessions` y `conversation_messages`;
+   - migracion `0002_conversation_persistence`;
+   - `POST /api/v1/agent/simulate-conversation-message`;
+   - `GET /api/v1/agent/conversations/{session_id}`;
+   - `POST /api/v1/agent/conversations/{session_id}/close`;
+   - acumulacion no destructiva de `extracted_data`;
+   - mensajes inbound/outbound persistidos;
+   - estados `active`, `waiting_for_customer`, `ready_for_confirmation`,
+     `closed` y `expired`;
+   - sin crear pedidos reales.
 
 ## Siguiente bloque recomendado
 
-### Bloque 9B: Confirmacion y persistencia conversacional
+### Bloque 9C: Confirmacion conversacional antes de pedidos reales
 
-Objetivo recomendado: agregar estado conversacional y un flujo de confirmacion
-antes de permitir que el agente cree pedidos reales.
+Objetivo recomendado: agregar un flujo explicito de confirmacion sobre sesiones
+persistentes antes de permitir que el agente prepare la creacion de pedidos
+reales.
 
 Alcance sugerido:
 
-- sesiones conversacionales internas;
-- mensajes o eventos del agente;
-- borrador de pedido o estructura equivalente;
 - confirmacion explicita antes de crear pedidos;
-- auditoria minima del flujo;
-- pruebas de persistencia y no duplicacion.
+- validacion final de cliente, producto, cantidad y direccion;
+- reglas para evitar doble confirmacion;
+- auditoria minima del flujo de confirmacion;
+- pruebas de que no se crean pedidos sin confirmacion explicita.
 
 ## Temas pendientes
 
@@ -73,13 +84,13 @@ Alcance sugerido:
 - Seguridad API.
 - Auditoria basica.
 - Integracion futura con WhatsApp real.
-- Persistencia conversacional del agente.
+- Confirmacion conversacional del agente.
 - Reportes avanzados.
 - Gestion avanzada de rutas y repartidores.
 
 ## Orden recomendado
 
-1. Bloque 9B: confirmacion y persistencia conversacional.
+1. Bloque 9C: confirmacion conversacional antes de pedidos reales.
 2. Bloque 8C: roles o permisos basicos si el negocio lo requiere.
 3. Seguridad API antes de exponer webhooks publicos.
 4. Bloque 10A: reportes operativos mas detallados.
