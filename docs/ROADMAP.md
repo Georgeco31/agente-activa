@@ -70,22 +70,31 @@ Este roadmap resume el estado del MVP y el orden recomendado para continuar.
    - integracion con persistencia conversacional 9B;
    - tipos no soportados registrados sin romper el endpoint;
    - sin envio real a Meta y sin crear pedidos reales.
+14. Confirmacion conversacional y creacion segura de pedidos reales:
+   - `POST /api/v1/agent/conversations/{session_id}/confirm-order`;
+   - confirmacion explicita requerida;
+   - `confirmation_summary` pendiente en `extracted_data`;
+   - validacion de cliente, telefono, producto, cantidad y direccion;
+   - reutilizacion de `app.services.orders.create_order()`;
+   - pedidos creados en estado `pendiente`;
+   - auditoria `order_created_by_agent`;
+   - bloqueo de duplicados recientes similares;
+   - webhook WhatsApp sigue sin crear pedidos automaticamente.
 
 ## Siguiente bloque recomendado
 
-### Bloque 9D: Confirmacion conversacional antes de pedidos reales
+### Bloque 9E: Simulador visual o confirmacion especial de duplicados
 
-Objetivo recomendado: agregar un flujo explicito de confirmacion sobre sesiones
-persistentes antes de permitir que el agente prepare la creacion de pedidos
-reales.
+Objetivo recomendado: mejorar la operacion del agente sin exponer todavia envio
+real de WhatsApp. Hay dos rutas razonables: un simulador visual interno en el
+panel o una confirmacion especial controlada para pedidos duplicados recientes.
 
 Alcance sugerido:
 
-- confirmacion explicita antes de crear pedidos;
-- validacion final de cliente, producto, cantidad y direccion;
-- reglas para evitar doble confirmacion;
-- auditoria minima del flujo de confirmacion;
-- pruebas de que no se crean pedidos sin confirmacion explicita.
+- revisar conversaciones y resultados desde una interfaz protegida; o
+- permitir confirmacion especial para crear un pedido adicional similar;
+- mantener `AGENT_SIMULATION_TOKEN` o autenticacion administrativa;
+- no enviar WhatsApp real todavia.
 
 ## Temas pendientes
 
@@ -93,13 +102,13 @@ Alcance sugerido:
 - Seguridad API.
 - Auditoria basica.
 - Envio futuro de respuestas reales por WhatsApp.
-- Confirmacion conversacional del agente.
+- Confirmacion especial para duplicados recientes.
 - Reportes avanzados.
 - Gestion avanzada de rutas y repartidores.
 
 ## Orden recomendado
 
-1. Bloque 9D: confirmacion conversacional antes de pedidos reales.
+1. Bloque 9E: simulador visual interno o confirmacion especial de duplicados.
 2. Bloque 8C: roles o permisos basicos si el negocio lo requiere.
 3. Seguridad API antes de exponer webhooks publicos.
 4. Bloque 10A: reportes operativos mas detallados.

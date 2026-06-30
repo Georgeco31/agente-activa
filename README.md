@@ -46,10 +46,11 @@ cuenta con su base tecnica y visual. Los bloques completados son:
 - Bloque 9A: nucleo conversacional backend y simulador interno.
 - Bloque 9B: persistencia conversacional minima del agente.
 - Bloque 9C: webhook WhatsApp/Meta seguro en modo preparacion.
+- Bloque 9D: confirmacion conversacional y creacion segura de pedidos reales.
 
 Validacion actual:
 
-- `docker compose exec api python -m pytest`: 156 pruebas aprobadas.
+- `docker compose exec api python -m pytest`: 178 pruebas aprobadas.
 - `docker compose exec api python -m ruff check app tests`: todos los chequeos aprobados.
 - `GET /api/v1/health`: responde `status: ok` y `database: ok`.
 
@@ -112,6 +113,9 @@ Validacion actual:
 - Webhook entrante compatible con Meta/WhatsApp Cloud API en modo preparacion:
   verificacion GET, validacion HMAC-SHA256 de POST y procesamiento interno sin
   envio real de mensajes.
+- Confirmacion conversacional protegida para crear pedidos reales solo con
+  cliente, producto, cantidad, direccion, resumen pendiente y confirmacion
+  explicita.
 
 ## Estructura del proyecto
 
@@ -187,6 +191,9 @@ Para usar el simulador interno del agente, configurar `AGENT_SIMULATION_TOKEN`
 en el entorno del backend y enviar el header `X-Agent-Simulation-Token`. El
 endpoint stateless es `POST /api/v1/agent/simulate-message`; el endpoint con
 persistencia conversacional es `POST /api/v1/agent/simulate-conversation-message`.
+La creacion real desde agente usa
+`POST /api/v1/agent/conversations/{session_id}/confirm-order` y requiere
+confirmacion explicita.
 Ver `docs/AGENT.md`.
 
 Para probar el webhook WhatsApp/Meta en modo preparacion, configurar
@@ -323,6 +330,7 @@ Las validaciones de entrada responden con estado `422` y codigo
 - `POST /api/v1/agent/simulate-conversation-message`
 - `GET /api/v1/agent/conversations/{session_id}`
 - `POST /api/v1/agent/conversations/{session_id}/close`
+- `POST /api/v1/agent/conversations/{session_id}/confirm-order`
 
 ### WhatsApp webhook en preparacion
 
@@ -374,7 +382,7 @@ Las validaciones de entrada responden con estado `422` y codigo
 ## Roadmap pendiente
 
 - Envio futuro de respuestas reales por WhatsApp.
-- Confirmacion conversacional de pedidos desde el agente.
+- Confirmacion especial para pedidos duplicados recientes.
 - Autorizacion y roles futuros.
 - Reportes operativos.
 - Gestion avanzada de rutas y repartidores.

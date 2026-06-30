@@ -25,6 +25,19 @@ continuar.
 - Toda funcionalidad nueva debe tener pruebas.
 - Mantener contrato uniforme de errores.
 
+## Agente conversacional
+
+- Mantener `simulate-message` y `simulate-conversation-message` como flujos de
+  simulacion/conversacion; no deben crear pedidos reales.
+- El webhook WhatsApp no debe crear pedidos reales automaticamente ni llamar
+  APIs externas de Meta mientras siga en modo preparacion.
+- La creacion real desde el agente debe pasar por `confirm-order`, con
+  `AGENT_SIMULATION_TOKEN`, `confirmation_summary` pendiente, datos completos y
+  confirmacion explicita.
+- No crear clientes automaticamente desde conversaciones.
+- No enviar mensajes reales a WhatsApp sin un bloque especifico de envio
+  saliente, seguridad y validacion.
+
 ## Frontend
 
 - No romper Server Components.

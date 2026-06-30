@@ -6,6 +6,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.order import OrderResponse
+
 
 class AgentIntent(StrEnum):
     GREETING = "greeting"
@@ -48,6 +50,7 @@ class AgentExtraction(BaseModel):
     product_id: UUID | None = None
     product_name: str | None = None
     product_price: Decimal | None = None
+    address_id: UUID | None = None
     address_hint: str | None = None
 
 
@@ -102,3 +105,13 @@ class AgentConversationSessionDetail(BaseModel):
 class AgentConversationSimulationResponse(BaseModel):
     session: AgentConversationSessionSummary
     analysis: AgentSimulationResponse
+
+
+class AgentOrderConfirmationRequest(BaseModel):
+    message: str = Field(min_length=1)
+
+
+class AgentOrderConfirmationResponse(BaseModel):
+    session: AgentConversationSessionDetail
+    order: OrderResponse
+    reply: str

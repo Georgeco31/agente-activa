@@ -73,8 +73,9 @@ Docker Compose.
 El backend contiene modelos ORM, migraciones, seed de estados, normalizacion de
 telefonos y texto, busqueda flexible, deteccion de duplicados, registro seguro
 de clientes, endpoints de clientes/productos/pedidos/dashboard, nucleo
-conversacional de simulacion interna, persistencia conversacional minima y
-webhook WhatsApp/Meta en modo preparacion, con contrato uniforme de errores.
+conversacional de simulacion interna, persistencia conversacional minima,
+webhook WhatsApp/Meta en modo preparacion y confirmacion conversacional segura
+para crear pedidos reales, con contrato uniforme de errores.
 
 ## Frontend actual
 
@@ -105,6 +106,9 @@ seguridad e identidad visual celeste/blanca.
     acumulacion de datos extraidos y cierre manual de sesiones.
 13. Webhook WhatsApp/Meta seguro en modo preparacion: verificacion GET,
     validacion HMAC-SHA256 de POST y procesamiento interno sin envio real.
+14. Confirmacion conversacional del agente: endpoint protegido para crear
+    pedidos reales solo con resumen pendiente, datos completos y confirmacion
+    explicita.
 
 ## Autenticacion del panel
 
@@ -166,6 +170,7 @@ Endpoints 9B:
 - `POST /api/v1/agent/simulate-conversation-message`
 - `GET /api/v1/agent/conversations/{session_id}`
 - `POST /api/v1/agent/conversations/{session_id}/close`
+- `POST /api/v1/agent/conversations/{session_id}/confirm-order`
 
 Estados conversacionales:
 
@@ -175,8 +180,8 @@ Estados conversacionales:
 - `closed`
 - `expired`
 
-`ready_for_confirmation` solo indica que el flujo puede pedir confirmacion
-futura. No significa que se haya creado un pedido real.
+`ready_for_confirmation` solo indica que el flujo puede pedir confirmacion. No
+significa que se haya creado un pedido real.
 
 El Bloque 9C agrega un borde externo preparado para Meta Webhooks:
 
@@ -195,6 +200,27 @@ El `GET` valida `hub.mode=subscribe`, compara `hub.verify_token` y devuelve
 de texto se envian al servicio persistente 9B; los tipos no soportados se
 registran como `unsupported_message_type`. No hay llamadas externas a Meta.
 
+El Bloque 9D agrega creacion segura de pedidos reales desde conversaciones:
+
+- `POST /api/v1/agent/conversations/{session_id}/confirm-order`
+
+Este endpoint requiere `X-Agent-Simulation-Token`, una sesion existente no
+cerrada, cliente identificado, telefono asociado al cliente, producto activo,
+cantidad entera entre 1 y 50, `address_id` real perteneciente al cliente,
+precio tomado del producto, `confirmation_summary` pendiente y una confirmacion
+explicita como `confirmo` u `ok`.
+
+La creacion reutiliza `app.services.orders.create_order()`, deja el pedido en
+estado inicial `pendiente`, guarda `order_id`, `order_number` y `confirmed_at`
+en `extracted_data`, cierra la sesion, crea un mensaje outbound interno y
+registra auditoria `order_created_by_agent`. Antes de crear, bloquea duplicados
+recientes similares de los ultimos 10 minutos en estados `pendiente`,
+`asignado` o `en_camino`.
+
+El webhook WhatsApp no llama `confirm-order` y no crea pedidos automaticamente.
+`simulate-conversation-message` tampoco crea pedidos. No se envian mensajes
+reales a WhatsApp.
+
 Intenciones iniciales:
 
 - `greeting`
@@ -209,9 +235,12 @@ El endpoint requiere `AGENT_SIMULATION_TOKEN` y el header
 `X-Agent-Simulation-Token`. Si el token falta o es placeholder, falla cerrado.
 Si el header falta o no coincide, responde `401`. No imprime tokens reales.
 
-Restricciones importantes de 9A/9B:
+Restricciones importantes de 9A/9B/9C/9D:
 
-- no crea pedidos;
+- `simulate-message` y `simulate-conversation-message` no crean pedidos;
+- el webhook WhatsApp no crea pedidos;
+- `confirm-order` es el unico endpoint del agente que crea pedidos reales y
+  solo con confirmacion explicita;
 - no cancela pedidos;
 - no modifica pedidos;
 - no modifica clientes ni productos;
@@ -312,7 +341,7 @@ Reglas:
 
 Ultima validacion conocida:
 
-- Backend: `156 passed, 1 warning`.
+- Backend: `178 passed, 1 warning`.
 - Ruff: `All checks passed`.
 - Frontend: `npm run lint`, `npm run typecheck` y `npm run build` aprobados.
 - Healthcheck: `status ok`, `database ok`.
@@ -350,10 +379,11 @@ Ultima validacion conocida:
 - No exponer `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH` ni `AUTH_SECRET` al cliente.
 - El simulador del agente usa `AGENT_SIMULATION_TOKEN` y no debe exponerse como
   webhook publico.
-- El agente 9A/9B no crea ni cancela pedidos reales; 9B solo persiste la
-  conversacion interna.
-- El webhook 9C no envia respuestas reales a WhatsApp ni llama APIs externas de
-  Meta.
+- El agente no crea pedidos desde simulacion ni webhook. Solo `confirm-order`
+  puede crear pedidos reales con resumen pendiente, datos completos y
+  confirmacion explicita.
+- El webhook 9C no envia respuestas reales a WhatsApp, no llama APIs externas
+  de Meta y no crea pedidos reales automaticamente.
 - Mantener pruebas para nuevas funcionalidades.
 - Mantener documentacion actualizada.
 - Mantener la identidad visual celeste y blanca.

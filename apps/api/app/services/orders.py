@@ -117,6 +117,7 @@ def create_order(
     items: list[OrderItemInput],
     notes: str | None = None,
     delivery_route_id: UUID | None = None,
+    source_channel: str = "manual",
 ) -> Order:
     customer = order_repository.get_customer_by_id(db, customer_id)
     if customer is None:
@@ -155,6 +156,7 @@ def create_order(
         delivery_fee=delivery_fee,
         total=total,
         confirmed_at=datetime.now(UTC),
+        source_channel=source_channel,
     )
 
     for item in validated_items:

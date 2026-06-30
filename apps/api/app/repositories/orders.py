@@ -60,6 +60,7 @@ def create_order(
     delivery_fee: Decimal,
     total: Decimal,
     confirmed_at: datetime,
+    source_channel: str = "manual",
 ) -> Order:
     order = Order(
         order_number=order_number,
@@ -68,7 +69,7 @@ def create_order(
         order_status_id=order_status_id,
         delivery_route_id=delivery_route_id,
         notes=notes,
-        source_channel="manual",
+        source_channel=source_channel,
         subtotal=subtotal,
         delivery_fee=delivery_fee,
         total=total,
@@ -77,6 +78,34 @@ def create_order(
     db.add(order)
     db.flush()
     return order
+
+
+def find_recent_similar_order(
+    db: Session,
+    *,
+    customer_id: UUID,
+    customer_address_id: UUID,
+    product_id: UUID,
+    quantity: Decimal,
+    created_after: datetime,
+    status_codes: set[str],
+) -> Order | None:
+    statement = (
+        select(Order)
+        .join(OrderStatus)
+        .join(OrderItem)
+        .options(*_order_load_options())
+        .where(
+            Order.customer_id == customer_id,
+            Order.customer_address_id == customer_address_id,
+            Order.created_at >= created_after,
+            OrderStatus.code.in_(status_codes),
+            OrderItem.product_id == product_id,
+            OrderItem.quantity == quantity,
+        )
+        .order_by(Order.created_at.desc())
+    )
+    return db.scalars(statement).unique().first()
 
 
 def create_order_item(

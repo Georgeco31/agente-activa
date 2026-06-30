@@ -68,6 +68,26 @@ sin enviar mensajes reales:
 No se debe exponer el webhook a internet sin HTTPS, rate limiting, monitoreo,
 logs sanitizados y una estrategia clara de manejo de secretos.
 
+## Bloque 9D
+
+El Bloque 9D agrega creacion real de pedidos desde conversaciones solo mediante
+un endpoint interno protegido:
+
+- `POST /api/v1/agent/conversations/{session_id}/confirm-order`;
+- requiere `X-Agent-Simulation-Token`;
+- requiere `confirmation_summary` pendiente en `extracted_data`;
+- valida cliente, telefono asociado, producto activo, cantidad, direccion y
+  precio antes de crear;
+- acepta solo confirmaciones explicitas normalizadas;
+- bloquea duplicados recientes similares;
+- reutiliza `app.services.orders.create_order()`;
+- guarda un mensaje outbound interno, pero no envia mensajes reales a WhatsApp.
+
+El webhook WhatsApp no invoca este endpoint y no crea pedidos automaticamente.
+`simulate-conversation-message` tampoco crea pedidos. El token de simulacion no
+debe exponerse en navegador, logs, documentacion con valores reales ni archivos
+versionados.
+
 ## Variables locales
 
 Crear `apps/admin/.env.local` desde `apps/admin/.env.example`:
@@ -93,6 +113,7 @@ Para el backend, `apps/api/.env.example` incluye placeholders de 9C:
 WHATSAPP_WEBHOOK_ENABLED=false
 WHATSAPP_WEBHOOK_VERIFY_TOKEN=replace-with-whatsapp-webhook-verify-token
 WHATSAPP_APP_SECRET=replace-with-whatsapp-app-secret
+AGENT_SIMULATION_TOKEN=replace-with-agent-simulation-token
 ```
 
 Los valores reales deben vivir solo en el entorno local o de despliegue.
@@ -151,6 +172,8 @@ Los `.env.example` deben contener solo placeholders.
 - Exponer el webhook de WhatsApp solo mediante HTTPS.
 - Validar firma de Meta en todos los `POST`.
 - Agregar rate limiting y monitoreo antes de pruebas publicas reales.
+- Mantener `confirm-order` como endpoint interno hasta tener autenticacion API,
+  auditoria persistente y controles de abuso.
 - Rotar `WHATSAPP_WEBHOOK_VERIFY_TOKEN` y `WHATSAPP_APP_SECRET` si se filtran.
 
 ## Pendientes futuros
@@ -162,6 +185,7 @@ Estos puntos no forman parte del MVP actual:
 - auditoria persistente por usuario;
 - rate limiting persistente;
 - autenticacion propia de la API;
+- confirmacion especial para duplicados recientes;
 - envio saliente real a WhatsApp;
 - rotacion automatizada de sesiones;
 - recuperacion de contrasena;

@@ -147,7 +147,7 @@ Respuesta de ejemplo:
 Estados de sesion: `active`, `waiting_for_customer`,
 `ready_for_confirmation`, `closed` y `expired`. El estado
 `ready_for_confirmation` no crea pedidos reales; solo indica que el flujo puede
-pedir confirmacion en un bloque futuro.
+pedir confirmacion.
 
 ### Consultar una conversacion
 
@@ -163,6 +163,40 @@ Devuelve la sesion, sus datos acumulados y sus mensajes guardados. Requiere
 Marca la sesion como `closed`. Si luego llega otro mensaje del mismo telefono,
 el endpoint persistente crea una sesion nueva. No elimina mensajes y no crea
 pedidos.
+
+### Confirmar pedido desde conversacion
+
+`POST /api/v1/agent/conversations/{session_id}/confirm-order`
+
+Este endpoint corresponde al Bloque 9D. Es el unico endpoint del agente que
+puede crear un pedido real, y solo lo hace si la conversacion tiene
+`confirmation_summary` pendiente, datos completos y una confirmacion explicita.
+
+Requiere `X-Agent-Simulation-Token`.
+
+```powershell
+$body = @{
+  message = "confirmo"
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:8000/api/v1/agent/conversations/$sessionId/confirm-order" `
+  -ContentType "application/json" `
+  -Headers @{ "X-Agent-Simulation-Token" = $env:AGENT_SIMULATION_TOKEN } `
+  -Body $body
+```
+
+Confirmaciones aceptadas: `si`, `confirmo`, `confirmado`, `correcto`, `dale`,
+`ok`, `esta bien`, `de acuerdo` y `procede`. Mensajes ambiguos como `tal vez`,
+`despues`, `espera`, `creo que si`, `no se` o `no` no crean pedidos.
+
+El pedido se crea con estado inicial `pendiente`, `source_channel` igual a
+`agent_conversation`, la sesion se cierra y `order_id`/`order_number` quedan en
+`extracted_data`.
+
+Si existe un pedido reciente similar de los ultimos 10 minutos, la API responde
+`AGENT_ORDER_DUPLICATE_RECENT` y no crea otro.
 
 Mas detalles estan en `docs/AGENT.md`.
 

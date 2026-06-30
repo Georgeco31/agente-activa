@@ -6,6 +6,9 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.models.conversation_session import ConversationSession
+from app.models.customer import Customer
+from app.models.customer_address import CustomerAddress
+from app.models.product import Product
 from app.repositories import conversations as conversation_repository
 from app.schemas.agent import (
     AgentConversationSessionSummary,
@@ -24,6 +27,8 @@ OPEN_SESSION_STATUSES = {
     ConversationStatus.WAITING_FOR_CUSTOMER.value,
     ConversationStatus.READY_FOR_CONFIRMATION.value,
 }
+
+SINGLE_ADDRESS_HINTS = {"casa", "de siempre", "direccion", "domicilio", "entrega"}
 
 
 class ConversationNotFoundError(ValueError):
@@ -47,6 +52,41 @@ def _merge_extracted_data(
         if value is not None:
             merged[field_name] = value
     return merged
+
+
+def _uuid_from_data(value: Any) -> UUID | None:
+    if value is None:
+        return None
+    try:
+        return UUID(str(value))
+    except ValueError:
+        return None
+
+
+def _resolve_single_customer_address(
+    db: Session,
+    *,
+    customer_id: UUID | None,
+    extracted_data: dict[str, Any],
+) -> dict[str, Any]:
+    if customer_id is None or extracted_data.get("address_id") is not None:
+        return extracted_data
+
+    address_hint = extracted_data.get("address_hint")
+    if address_hint not in SINGLE_ADDRESS_HINTS:
+        return extracted_data
+
+    customer = db.get(Customer, customer_id)
+    if customer is None or len(customer.addresses) != 1:
+        return extracted_data
+
+    address = customer.addresses[0]
+    return {
+        **extracted_data,
+        "address_id": str(address.id),
+        "address_text": address.address_text,
+        "address_reference": address.reference,
+    }
 
 
 def _next_intent(
@@ -82,9 +122,70 @@ def _missing_fields_for_accumulated_data(
         missing.append("quantity")
     if extracted_data.get("product_id") is None:
         missing.append("product_id")
-    if extracted_data.get("address_id") is None and extracted_data.get("address_hint") is None:
+    if extracted_data.get("address_id") is None:
         missing.append("address_id")
     return missing
+
+
+def _build_confirmation_summary(
+    db: Session,
+    *,
+    customer_id: UUID | None,
+    extracted_data: dict[str, Any],
+) -> dict[str, Any] | None:
+    if customer_id is None:
+        return None
+
+    product_id = _uuid_from_data(extracted_data.get("product_id"))
+    address_id = _uuid_from_data(extracted_data.get("address_id"))
+    quantity = extracted_data.get("quantity")
+    if product_id is None or address_id is None or not isinstance(quantity, int):
+        return None
+
+    customer = db.get(Customer, customer_id)
+    product = db.get(Product, product_id)
+    address = db.get(CustomerAddress, address_id)
+    if customer is None or product is None or address is None:
+        return None
+    if address.customer_id != customer.id:
+        return None
+
+    unit_price = product.price
+    total = unit_price * quantity
+    return {
+        "customer_id": str(customer.id),
+        "customer_name": customer.display_name,
+        "product_id": str(product.id),
+        "product_name": product.name,
+        "quantity": quantity,
+        "address_id": str(address.id),
+        "address_text": address.address_text,
+        "unit_price": f"{unit_price:.2f}",
+        "total": f"{total:.2f}",
+        "generated_at": _now().isoformat(),
+        "status": "pending",
+    }
+
+
+def _reply_for_accumulated_state(
+    db: Session,
+    *,
+    customer_id: UUID | None,
+    extracted_data: dict[str, Any],
+    missing_fields: list[str],
+    fallback_reply: str,
+) -> str:
+    if "address_id" not in missing_fields:
+        return fallback_reply
+    if extracted_data.get("address_hint") not in SINGLE_ADDRESS_HINTS:
+        return fallback_reply
+    if customer_id is None:
+        return fallback_reply
+
+    customer = db.get(Customer, customer_id)
+    if customer is not None and len(customer.addresses) > 1:
+        return "Tengo varias direcciones registradas. Indicame a cual enviamos el pedido."
+    return fallback_reply
 
 
 def _status_for_session(
@@ -106,6 +207,7 @@ def _analysis_with_accumulated_data(
     *,
     extracted_data: dict[str, Any],
     missing_fields: list[str],
+    reply: str | None = None,
 ) -> AgentSimulationResponse:
     return AgentSimulationResponse(
         intent=analysis.intent,
@@ -113,7 +215,7 @@ def _analysis_with_accumulated_data(
         customer=analysis.customer,
         extracted=AgentExtraction(**extracted_data),
         missing_fields=missing_fields,
-        reply=analysis.reply,
+        reply=reply if reply is not None else analysis.reply,
     )
 
 
@@ -171,6 +273,11 @@ def simulate_conversation_message(
     incoming_extracted = _json_model(analysis.extracted)
     extracted_data = _merge_extracted_data(session.extracted_data, incoming_extracted)
     customer_id = analysis.customer.id or session.customer_id
+    extracted_data = _resolve_single_customer_address(
+        db,
+        customer_id=customer_id,
+        extracted_data=extracted_data,
+    )
     current_intent = _next_intent(session.current_intent, analysis.intent)
     missing_fields = _missing_fields_for_accumulated_data(
         current_intent=current_intent,
@@ -181,10 +288,29 @@ def simulate_conversation_message(
         current_intent=current_intent,
         missing_fields=missing_fields,
     )
+    if status == ConversationStatus.READY_FOR_CONFIRMATION.value:
+        confirmation_summary = _build_confirmation_summary(
+            db,
+            customer_id=customer_id,
+            extracted_data=extracted_data,
+        )
+        if confirmation_summary is not None:
+            extracted_data["confirmation_summary"] = confirmation_summary
+    else:
+        extracted_data.pop("confirmation_summary", None)
+
+    reply = _reply_for_accumulated_state(
+        db,
+        customer_id=customer_id,
+        extracted_data=extracted_data,
+        missing_fields=missing_fields,
+        fallback_reply=analysis.reply,
+    )
     accumulated_analysis = _analysis_with_accumulated_data(
         analysis,
         extracted_data=extracted_data,
         missing_fields=missing_fields,
+        reply=reply,
     )
 
     conversation_repository.update_session(
@@ -229,7 +355,7 @@ def simulate_conversation_message(
         session_id=session.id,
         direction=ConversationMessageDirection.OUTBOUND.value,
         phone=phone,
-        message=analysis.reply,
+        message=accumulated_analysis.reply,
         intent=analysis.intent.value,
         confidence=_confidence_as_decimal(analysis.confidence),
         message_metadata=outbound_metadata,

@@ -1,8 +1,9 @@
 # Agente conversacional
 
-Esta guia documenta los Bloques 9A, 9B y 9C del agente interno. El objetivo es
-preparar el futuro agente de WhatsApp sin enviar mensajes reales y sin crear
-pedidos reales automaticamente.
+Esta guia documenta los Bloques 9A, 9B, 9C y 9D del agente interno. El objetivo
+es preparar el futuro agente de WhatsApp sin enviar mensajes reales y con
+creacion de pedidos reales solo bajo confirmacion explicita y controles
+backend.
 
 ## Que hace 9A
 
@@ -31,7 +32,7 @@ interpreta, consulta y responde.
 - Permite cerrar una sesion manualmente.
 
 `ready_for_confirmation` significa que el flujo ya tiene datos suficientes para
-pedir confirmacion en un bloque futuro. No significa que exista un pedido real.
+pedir confirmacion. No significa que exista un pedido real.
 
 ## Que hace 9C
 
@@ -48,17 +49,33 @@ pedir confirmacion en un bloque futuro. No significa que exista un pedido real.
 
 9C no llama APIs externas de Meta y no envia respuestas reales.
 
+## Que hace 9D
+
+- Genera `confirmation_summary` cuando una conversacion llega a
+  `ready_for_confirmation`.
+- Expone `POST /api/v1/agent/conversations/{session_id}/confirm-order`.
+- Crea un pedido real solo si hay datos completos y confirmacion explicita.
+- Reutiliza `app.services.orders.create_order()` para conservar reglas de
+  pedidos.
+- Crea pedidos en estado inicial `pendiente`.
+- Cierra la conversacion despues de crear el pedido.
+- Guarda `order_id`, `order_number` y `confirmed_at` en `extracted_data`.
+- Guarda un mensaje outbound interno con el numero de pedido.
+- Registra auditoria adicional `order_created_by_agent`.
+- Bloquea duplicados recientes similares.
+
 ## Que no hace todavia
 
 - No conecta WhatsApp real.
 - No envia mensajes reales.
 - No usa OpenAI ni APIs externas.
-- No crea pedidos.
+- No crea pedidos desde el webhook WhatsApp.
+- No crea pedidos desde `simulate-conversation-message`.
+- No crea pedidos sin resumen pendiente y confirmacion explicita.
 - No cancela pedidos.
 - No modifica pedidos.
 - No modifica clientes.
 - No modifica productos.
-- No confirma pedidos.
 - No implementa job automatico de expiracion.
 - No implementa una pantalla `/agent` en el panel.
 - No debe exponerse publicamente sin HTTPS, rate limiting, monitoreo y controles
@@ -79,7 +96,7 @@ pedir confirmacion en un bloque futuro. No significa que exista un pedido real.
 - `active`: sesion abierta sin flujo de pedido listo.
 - `waiting_for_customer`: falta informacion para continuar.
 - `ready_for_confirmation`: los datos acumulados permiten pedir confirmacion
-  futura, pero no se crea un pedido real.
+  explicita, pero no se crea un pedido real automaticamente.
 - `closed`: sesion cerrada manualmente.
 - `expired`: estado reservado para expiracion futura; no hay job automatico.
 
@@ -238,6 +255,106 @@ Devuelve la sesion, los datos acumulados y los mensajes guardados.
 
 Marca la sesion como `closed`. No elimina mensajes y no crea pedidos.
 
+### Confirmar y crear pedido
+
+`POST /api/v1/agent/conversations/{session_id}/confirm-order`
+
+Header obligatorio:
+
+```http
+X-Agent-Simulation-Token: <AGENT_SIMULATION_TOKEN>
+```
+
+Body:
+
+```json
+{
+  "message": "confirmo"
+}
+```
+
+El endpoint crea un pedido real solo si se cumple todo:
+
+- la sesion existe y no esta cerrada;
+- la sesion esta en `ready_for_confirmation`;
+- existe `confirmation_summary` pendiente en `extracted_data`;
+- el cliente existe;
+- el telefono normalizado de la sesion pertenece al cliente;
+- el producto existe, esta activo y su precio es valido;
+- la cantidad es un entero mayor que cero y maximo 50;
+- existe `address_id`;
+- la direccion pertenece al cliente;
+- el mensaje contiene confirmacion explicita;
+- no existe un pedido reciente similar.
+
+Confirmaciones aceptadas, despues de normalizar texto:
+
+- `si`
+- `confirmo`
+- `confirmado`
+- `correcto`
+- `dale`
+- `ok`
+- `esta bien`
+- `de acuerdo`
+- `procede`
+
+Mensajes como `tal vez`, `despues`, `espera`, `creo que si`, `no se` o `no`
+no crean pedidos.
+
+Respuesta de ejemplo abreviada:
+
+```json
+{
+  "session": {
+    "status": "closed",
+    "extracted_data": {
+      "order_id": "44444444-4444-4444-8444-444444444444",
+      "order_number": "ORD-20260630-ABC123",
+      "confirmed_at": "2026-06-30T03:00:00+00:00"
+    }
+  },
+  "order": {
+    "id": "44444444-4444-4444-8444-444444444444",
+    "order_number": "ORD-20260630-ABC123",
+    "source_channel": "agent_conversation"
+  },
+  "reply": "Pedido ORD-20260630-ABC123 creado correctamente. Estado inicial: pendiente."
+}
+```
+
+La respuesta real incluye el contrato completo de sesion y pedido usado por la
+API.
+
+## Condiciones para confirmation_summary
+
+El resumen pendiente se guarda en `conversation_sessions.extracted_data` cuando
+la conversacion tiene datos suficientes. Contiene:
+
+- `customer_id`
+- `product_id`
+- `product_name`
+- `quantity`
+- `address_id`
+- `address_text`
+- `unit_price`
+- `total`
+- `generated_at`
+- `status: pending`
+
+Si el cliente tiene una sola direccion y el mensaje contiene una pista como
+`de siempre`, el backend puede resolver esa direccion y generar el resumen. Si
+el cliente tiene varias direcciones, el agente debe pedir aclaracion.
+
+## Duplicados recientes
+
+Antes de crear un pedido, el backend busca pedidos similares de los ultimos 10
+minutos con mismo cliente, direccion, producto, cantidad y estado `pendiente`,
+`asignado` o `en_camino`.
+
+Si existe uno, responde `AGENT_ORDER_DUPLICATE_RECENT` y no crea otro. La
+confirmacion especial para duplicados queda pendiente para un bloque futuro.
+
 ## Webhook WhatsApp/Meta en preparacion
 
 Variables necesarias:
@@ -300,6 +417,10 @@ responde `200` con un resumen interno:
 
 `outbound_sent: false` es intencional: el webhook no envia mensajes reales a
 WhatsApp en 9C.
+
+En 9D el webhook sigue sin crear pedidos reales automaticamente. Solo guarda y
+procesa conversaciones; la creacion real queda limitada al endpoint interno
+protegido `confirm-order`.
 
 ### Payload soportado
 
@@ -392,16 +513,16 @@ una respuesta que pide aclaracion.
 ## Limitaciones
 
 - Las reglas no entienden lenguaje natural complejo.
-- No hay confirmacion de pedido.
 - No hay auditoria avanzada.
 - No hay expiracion automatica de sesiones.
 - No hay envio saliente a WhatsApp.
+- No hay confirmacion especial para duplicados recientes.
 - Los sinonimos reales del negocio pueden requerir ajustes.
 - El token de simulacion no reemplaza autenticacion API completa.
 
 ## Proximos pasos
 
-- Flujo de confirmacion antes de crear pedidos reales.
+- Confirmacion especial para duplicados recientes.
 - Simulador visual en el panel admin.
 - Envio WhatsApp saliente despues de controles adicionales.
 - Rate limiting y auditoria persistente.
