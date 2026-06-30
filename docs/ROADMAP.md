@@ -80,6 +80,15 @@ Este roadmap resume el estado del MVP y el orden recomendado para continuar.
    - auditoria `order_created_by_agent`;
    - bloqueo de duplicados recientes similares;
    - webhook WhatsApp sigue sin crear pedidos automaticamente.
+15. Preparacion local escalable y checklist de despliegue:
+   - `docs/LOCAL_DEPLOYMENT.md`;
+   - `docs/BACKUP_RESTORE.md`;
+   - `docs/DEPLOYMENT_CHECKLIST.md`;
+   - `docs/PRODUCTION_READINESS.md`;
+   - ejemplos seguros en `docs/env/`;
+   - sin scripts operativos;
+   - sin `docker-compose.prod.example.yml`;
+   - sin cambios de logica backend/frontend.
 
 ## Siguiente bloque recomendado
 
@@ -105,13 +114,15 @@ Alcance sugerido:
 - Confirmacion especial para duplicados recientes.
 - Reportes avanzados.
 - Gestion avanzada de rutas y repartidores.
+- Docker Compose de produccion, reverse proxy y HTTPS.
+- Scripts operativos para backup/restore cuando se valide una convencion.
 
 ## Orden recomendado
 
 1. Bloque 9E: simulador visual interno o confirmacion especial de duplicados.
 2. Bloque 8C: roles o permisos basicos si el negocio lo requiere.
 3. Seguridad API antes de exponer webhooks publicos.
-4. Bloque 10A: reportes operativos mas detallados.
+4. Bloque 10B: reportes operativos mas detallados.
 
 ## Que no hacer todavia
 

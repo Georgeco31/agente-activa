@@ -138,6 +138,8 @@ Abrir `/login` e ingresar con `ADMIN_USERNAME` y la contrasena usada para
 generar `ADMIN_PASSWORD_HASH`.
 
 Mas detalles de seguridad y produccion estan en `docs/SECURITY.md`.
+La guia operativa completa para local o servidor interno esta en
+`docs/LOCAL_DEPLOYMENT.md`.
 
 Detener Next.js con `Ctrl + C`.
 
@@ -189,3 +191,13 @@ docker compose down -v
 ```
 
 `down -v` elimina volumenes de PostgreSQL y por tanto borra datos locales.
+
+## Backups y checklist
+
+Antes de migraciones o cambios grandes, revisar:
+
+- `docs/BACKUP_RESTORE.md`
+- `docs/DEPLOYMENT_CHECKLIST.md`
+- `docs/PRODUCTION_READINESS.md`
+
+No subir backups ni archivos `.env` reales al repositorio.

@@ -13,6 +13,8 @@ htmlcov/
 .venv/
 venv/
 env/
+!docs/env/
+!docs/env/*.example
 
 # Environment variables
 .env

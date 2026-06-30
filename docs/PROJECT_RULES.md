@@ -6,7 +6,9 @@ continuar.
 ## Seguridad y datos
 
 - No subir archivos `.env` reales.
+- No subir archivos `.env.local` reales.
 - No subir API keys, tokens ni credenciales.
+- No subir backups de base de datos.
 - No subir datos reales de clientes.
 - No subir telefonos reales.
 - No subir direcciones reales.
@@ -14,6 +16,20 @@ continuar.
 - Revisar cuidadosamente cualquier archivo generado antes de versionarlo.
 - No guardar tokens o credenciales en `localStorage` ni `sessionStorage`.
 - No exponer credenciales con variables `NEXT_PUBLIC_*`.
+
+## Operacion local y despliegue
+
+- Mantener `docker-compose.yml` actual orientado a desarrollo/local salvo
+  justificacion fuerte.
+- No crear `docker-compose.prod.example.yml` hasta definir reverse proxy, HTTPS,
+  dominios, backups, secretos, logs y ambientes.
+- No crear scripts operativos hasta validar una convencion clara para Mac y
+  Linux.
+- Documentar puertos, backups, restore y apagado antes de operar con datos
+  reales.
+- Probar restauraciones antes de confiar en backups.
+- No exponer FastAPI ni PostgreSQL publicamente sin controles de red, proxy y
+  HTTPS.
 
 ## Backend
 

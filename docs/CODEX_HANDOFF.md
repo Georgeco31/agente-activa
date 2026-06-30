@@ -109,6 +109,9 @@ seguridad e identidad visual celeste/blanca.
 14. Confirmacion conversacional del agente: endpoint protegido para crear
     pedidos reales solo con resumen pendiente, datos completos y confirmacion
     explicita.
+15. Preparacion local escalable: guias de operacion local, backups,
+    restauracion, checklist de despliegue interno y readiness para VPS/nube
+    futura.
 
 ## Autenticacion del panel
 
@@ -251,6 +254,25 @@ Restricciones importantes de 9A/9B/9C/9D:
 
 La documentacion principal del agente esta en `docs/AGENT.md`.
 
+## Operacion local y despliegue futuro
+
+El Bloque 10A no cambia logica del producto. Agrega documentacion y ejemplos
+seguros para operar localmente o en un servidor interno:
+
+- `docs/LOCAL_DEPLOYMENT.md`: levantar backend, base y admin, puertos,
+  migraciones, seed, healthcheck, login, dashboard y apagado.
+- `docs/BACKUP_RESTORE.md`: backup con `pg_dump`, copia local, restauracion con
+  `pg_restore`, advertencias destructivas y pruebas de restauracion.
+- `docs/DEPLOYMENT_CHECKLIST.md`: checklist de variables, secretos, migraciones,
+  health, frontend, backups, red local y Git.
+- `docs/PRODUCTION_READINESS.md`: requisitos pendientes para VPS/nube,
+  dominio, HTTPS, reverse proxy, backups automaticos, logs, monitoreo y
+  rollback.
+- `docs/env/*.example`: ejemplos locales y futuros de entorno con placeholders.
+
+No se creo `docker-compose.prod.example.yml` ni scripts operativos. El
+`docker-compose.yml` actual sigue siendo local.
+
 ## Endpoints principales
 
 Health:
@@ -359,7 +381,11 @@ Ultima validacion conocida:
 8. `docs/AGENT.md`
 9. `docs/ADMIN_PANEL.md`
 10. `docs/SECURITY.md`
-11. `docs/TESTING.md`
+11. `docs/LOCAL_DEPLOYMENT.md`
+12. `docs/BACKUP_RESTORE.md`
+13. `docs/DEPLOYMENT_CHECKLIST.md`
+14. `docs/PRODUCTION_READINESS.md`
+15. `docs/TESTING.md`
 
 ## Decisiones tecnicas importantes
 
@@ -384,6 +410,10 @@ Ultima validacion conocida:
   confirmacion explicita.
 - El webhook 9C no envia respuestas reales a WhatsApp, no llama APIs externas
   de Meta y no crea pedidos reales automaticamente.
+- El Bloque 10A es documental: no cambia backend, frontend, endpoints,
+  migraciones ni Docker Compose actual.
+- No crear scripts operativos ni docker-compose de produccion hasta definir
+  reverse proxy, HTTPS, dominios, backups, logs y separacion de ambientes.
 - Mantener pruebas para nuevas funcionalidades.
 - Mantener documentacion actualizada.
 - Mantener la identidad visual celeste y blanca.

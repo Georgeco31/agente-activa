@@ -118,6 +118,9 @@ AGENT_SIMULATION_TOKEN=replace-with-agent-simulation-token
 
 Los valores reales deben vivir solo en el entorno local o de despliegue.
 
+Ejemplos adicionales de entorno con placeholders viven en `docs/env/`. No son
+archivos `.env` reales y no deben contener secretos reales.
+
 ## Generar AUTH_SECRET
 
 En Mac:
@@ -148,13 +151,14 @@ archivos versionados.
 - `.env.local`
 - `apps/api/.env`
 - `apps/admin/.env.local`
+- `backups/`
+- dumps de PostgreSQL;
 - `node_modules/`
 - `.next/`
 - archivos con API keys, tokens o credenciales;
 - datos reales de clientes;
 - telefonos reales;
 - direcciones reales;
-- dumps de base de datos;
 - certificados o llaves privadas.
 
 Los `.env.example` deben contener solo placeholders.
@@ -167,6 +171,7 @@ Los `.env.example` deben contener solo placeholders.
 - No exponer FastAPI publicamente sin proteccion.
 - No usar datos reales en entornos publicos o compartidos.
 - Configurar backups y control de acceso fuera del repositorio.
+- Probar restauraciones antes de confiar en backups.
 - Validar que el hosting preserve headers de seguridad.
 - Revisar logs para evitar que impriman secretos.
 - Exponer el webhook de WhatsApp solo mediante HTTPS.
@@ -175,6 +180,8 @@ Los `.env.example` deben contener solo placeholders.
 - Mantener `confirm-order` como endpoint interno hasta tener autenticacion API,
   auditoria persistente y controles de abuso.
 - Rotar `WHATSAPP_WEBHOOK_VERIFY_TOKEN` y `WHATSAPP_APP_SECRET` si se filtran.
+- No exponer puertos `8000`, `5432` o `3000` publicamente sin proxy, HTTPS,
+  firewall y controles operativos.
 
 ## Pendientes futuros
 
@@ -190,3 +197,5 @@ Estos puntos no forman parte del MVP actual:
 - rotacion automatizada de sesiones;
 - recuperacion de contrasena;
 - OAuth o proveedor externo de identidad.
+- docker-compose de produccion;
+- scripts operativos de backup/restore.

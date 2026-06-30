@@ -47,6 +47,7 @@ cuenta con su base tecnica y visual. Los bloques completados son:
 - Bloque 9B: persistencia conversacional minima del agente.
 - Bloque 9C: webhook WhatsApp/Meta seguro en modo preparacion.
 - Bloque 9D: confirmacion conversacional y creacion segura de pedidos reales.
+- Bloque 10A: preparacion local escalable, backups y checklist de despliegue.
 
 Validacion actual:
 
@@ -146,13 +147,18 @@ Validacion actual:
 |   |-- ADMIN_PANEL.md
 |   |-- AGENT.md
 |   |-- API_USAGE.md
+|   |-- BACKUP_RESTORE.md
 |   |-- CODEX_HANDOFF.md
 |   |-- DATA_MODEL.md
+|   |-- DEPLOYMENT_CHECKLIST.md
+|   |-- LOCAL_DEPLOYMENT.md
 |   |-- MAC_SETUP.md
 |   |-- PRD.md
+|   |-- PRODUCTION_READINESS.md
 |   |-- PROJECT_RULES.md
 |   |-- ROADMAP.md
 |   |-- SECURITY.md
+|   |-- env/
 |   `-- TESTING.md
 |-- docker-compose.yml
 `-- README.md
@@ -296,6 +302,24 @@ Ejecutar Ruff:
 docker compose exec api python -m ruff check app tests
 ```
 
+## Operacion local y backups
+
+La guia operativa principal para una maquina local o servidor interno esta en
+[`docs/LOCAL_DEPLOYMENT.md`](docs/LOCAL_DEPLOYMENT.md).
+
+Backups y restauracion de PostgreSQL estan documentados en
+[`docs/BACKUP_RESTORE.md`](docs/BACKUP_RESTORE.md). Antes de migraciones o
+cambios grandes, crear un backup y probar la restauracion en un entorno de
+prueba.
+
+El checklist de despliegue local esta en
+[`docs/DEPLOYMENT_CHECKLIST.md`](docs/DEPLOYMENT_CHECKLIST.md). La preparacion
+para VPS/nube futura esta en
+[`docs/PRODUCTION_READINESS.md`](docs/PRODUCTION_READINESS.md).
+
+Los ejemplos adicionales de entorno viven en `docs/env/` y contienen solo
+placeholders. No crear ni versionar `.env` reales.
+
 ## Respuestas de error
 
 Los errores de la API usan una estructura uniforme:
@@ -372,6 +396,10 @@ Las validaciones de entrada responden con estado `422` y codigo
 - [Agente conversacional](docs/AGENT.md)
 - [Guía de uso de API](docs/API_USAGE.md)
 - [Guía de pruebas](docs/TESTING.md)
+- [Operación local](docs/LOCAL_DEPLOYMENT.md)
+- [Backups y restauración](docs/BACKUP_RESTORE.md)
+- [Checklist de despliegue](docs/DEPLOYMENT_CHECKLIST.md)
+- [Preparación para producción](docs/PRODUCTION_READINESS.md)
 - [Handoff para Codex](docs/CODEX_HANDOFF.md)
 - [Setup en Mac](docs/MAC_SETUP.md)
 - [Roadmap](docs/ROADMAP.md)
@@ -386,6 +414,8 @@ Las validaciones de entrada responden con estado `422` y codigo
 - Autorizacion y roles futuros.
 - Reportes operativos.
 - Gestion avanzada de rutas y repartidores.
+- Docker Compose de produccion, reverse proxy y HTTPS cuando se defina el
+  despliegue publico.
 
 ## Seguridad
 
@@ -401,5 +431,6 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 Envio real de mensajes por WhatsApp, exposicion publica sin controles
 adicionales, creacion automatica de pedidos desde el agente, roles reales,
-recuperacion de contrasena, OAuth, reportes y la gestion avanzada de rutas o
-repartidores todavia no forman parte del MVP actual.
+recuperacion de contrasena, OAuth, reportes, docker-compose de produccion,
+scripts operativos y la gestion avanzada de rutas o repartidores todavia no
+forman parte del MVP actual.
