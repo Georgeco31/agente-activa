@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     postgres_password: str = "agua_password"
     database_url: str | None = Field(default=None)
     agent_simulation_token: str | None = Field(default=None)
+    whatsapp_webhook_enabled: bool = False
+    whatsapp_webhook_verify_token: str | None = Field(default=None)
+    whatsapp_app_secret: str | None = Field(default=None)
 
     @cached_property
     def sqlalchemy_database_uri(self) -> str:

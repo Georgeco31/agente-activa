@@ -166,6 +166,74 @@ pedidos.
 
 Mas detalles estan en `docs/AGENT.md`.
 
+## WhatsApp webhook en preparacion
+
+### Verificar webhook
+
+`GET /api/v1/whatsapp/webhook`
+
+Este endpoint corresponde al Bloque 9C y solo prepara la compatibilidad con
+Meta Webhooks. No conecta WhatsApp real, no envia respuestas y no crea pedidos.
+
+Requiere:
+
+- `WHATSAPP_WEBHOOK_ENABLED=true`
+- `WHATSAPP_WEBHOOK_VERIFY_TOKEN` configurado localmente
+
+Ejemplo local:
+
+```powershell
+Invoke-RestMethod `
+  "http://localhost:8000/api/v1/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=$env:WHATSAPP_WEBHOOK_VERIFY_TOKEN&hub.challenge=test-challenge"
+```
+
+Si el token coincide, la respuesta es texto plano:
+
+```text
+test-challenge
+```
+
+### Recibir evento firmado
+
+`POST /api/v1/whatsapp/webhook`
+
+Requiere:
+
+- `WHATSAPP_WEBHOOK_ENABLED=true`
+- `WHATSAPP_APP_SECRET` configurado localmente
+- header `X-Hub-Signature-256` con formato `sha256=<hmac-hex>`
+
+El HMAC se calcula con SHA-256 sobre el body crudo. La API valida la firma antes
+de parsear JSON.
+
+Ejemplo con Bash y valores ficticios locales:
+
+```bash
+BODY='{"entry":[{"changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"593999000000","phone_number_id":"phone-number-id"},"messages":[{"from":"593999999999","id":"wamid.local-test","timestamp":"1710000000","type":"text","text":{"body":"Hola, quiero un bidon de 20 litros"}}]}}]}]}'
+SIGNATURE=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$WHATSAPP_APP_SECRET" -binary | xxd -p -c 256)
+curl -X POST http://localhost:8000/api/v1/whatsapp/webhook \
+  -H "Content-Type: application/json" \
+  -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
+  -d "$BODY"
+```
+
+Respuesta de ejemplo:
+
+```json
+{
+  "status": "ok",
+  "processed_messages": 1,
+  "unsupported_messages": 0,
+  "ignored_messages": 0,
+  "session_ids": ["33333333-3333-4333-8333-333333333333"],
+  "outbound_sent": false
+}
+```
+
+`outbound_sent` permanece en `false` porque 9C no llama APIs externas de Meta.
+Para probar con Meta real se necesita una URL publica HTTPS y controles
+adicionales antes de exponer el backend.
+
 ## Dashboard
 
 ### Consultar resumen operativo

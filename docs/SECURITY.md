@@ -47,6 +47,27 @@ La CSP de desarrollo permite lo necesario para Next dev y HMR. La CSP de
 produccion es mas estricta, pero conserva compatibilidad con los scripts y
 estilos que necesita Next.js.
 
+## Bloque 9C
+
+El Bloque 9C prepara un webhook entrante compatible con Meta/WhatsApp Cloud API
+sin enviar mensajes reales:
+
+- `WHATSAPP_WEBHOOK_ENABLED` controla si el webhook acepta verificacion y
+  eventos.
+- `WHATSAPP_WEBHOOK_VERIFY_TOKEN` se usa solo para la verificacion `GET`.
+- `WHATSAPP_APP_SECRET` se usa para validar `X-Hub-Signature-256` en `POST`.
+- El `POST` lee el body crudo antes de parsear JSON.
+- La firma debe tener formato `sha256=<hmac-hex>`.
+- El HMAC se calcula con SHA-256 sobre el body crudo.
+- La comparacion usa `compare_digest`.
+- Los errores no imprimen verify token, app secret ni firma recibida.
+- Los tipos no soportados se registran con metadata minima y no se procesan
+  como pedidos.
+- `outbound_sent` permanece en `false`; no hay envio saliente a Meta.
+
+No se debe exponer el webhook a internet sin HTTPS, rate limiting, monitoreo,
+logs sanitizados y una estrategia clara de manejo de secretos.
+
 ## Variables locales
 
 Crear `apps/admin/.env.local` desde `apps/admin/.env.example`:
@@ -65,6 +86,16 @@ AUTH_SECRET=replace-with-random-32-byte-secret
 ```
 
 No subir `apps/admin/.env.local`.
+
+Para el backend, `apps/api/.env.example` incluye placeholders de 9C:
+
+```text
+WHATSAPP_WEBHOOK_ENABLED=false
+WHATSAPP_WEBHOOK_VERIFY_TOKEN=replace-with-whatsapp-webhook-verify-token
+WHATSAPP_APP_SECRET=replace-with-whatsapp-app-secret
+```
+
+Los valores reales deben vivir solo en el entorno local o de despliegue.
 
 ## Generar AUTH_SECRET
 
@@ -117,6 +148,10 @@ Los `.env.example` deben contener solo placeholders.
 - Configurar backups y control de acceso fuera del repositorio.
 - Validar que el hosting preserve headers de seguridad.
 - Revisar logs para evitar que impriman secretos.
+- Exponer el webhook de WhatsApp solo mediante HTTPS.
+- Validar firma de Meta en todos los `POST`.
+- Agregar rate limiting y monitoreo antes de pruebas publicas reales.
+- Rotar `WHATSAPP_WEBHOOK_VERIFY_TOKEN` y `WHATSAPP_APP_SECRET` si se filtran.
 
 ## Pendientes futuros
 
@@ -127,6 +162,7 @@ Estos puntos no forman parte del MVP actual:
 - auditoria persistente por usuario;
 - rate limiting persistente;
 - autenticacion propia de la API;
+- envio saliente real a WhatsApp;
 - rotacion automatizada de sesiones;
 - recuperacion de contrasena;
 - OAuth o proveedor externo de identidad.

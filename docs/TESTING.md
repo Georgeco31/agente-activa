@@ -95,7 +95,7 @@ docker compose exec api python -m pytest
 Resultado esperado actual:
 
 ```text
-144 passed, 1 warning
+156 passed, 1 warning
 ```
 
 El warning actual de Starlette TestClient relacionado con `httpx` es una
@@ -113,6 +113,12 @@ docker compose exec api python -m pytest tests/test_agent_service.py tests/test_
 
 ```powershell
 docker compose exec api python -m pytest tests/test_agent_conversation_service.py tests/test_agent_conversation_endpoint.py
+```
+
+### Webhook WhatsApp en preparacion
+
+```powershell
+docker compose exec api python -m pytest tests/test_whatsapp_webhook.py
 ```
 
 ### Normalización de teléfonos y texto

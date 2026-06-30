@@ -45,10 +45,11 @@ cuenta con su base tecnica y visual. Los bloques completados son:
 - Bloque 8B: endurecimiento de configuracion y headers de seguridad.
 - Bloque 9A: nucleo conversacional backend y simulador interno.
 - Bloque 9B: persistencia conversacional minima del agente.
+- Bloque 9C: webhook WhatsApp/Meta seguro en modo preparacion.
 
 Validacion actual:
 
-- `docker compose exec api python -m pytest`: 144 pruebas aprobadas.
+- `docker compose exec api python -m pytest`: 156 pruebas aprobadas.
 - `docker compose exec api python -m ruff check app tests`: todos los chequeos aprobados.
 - `GET /api/v1/health`: responde `status: ok` y `database: ok`.
 
@@ -108,6 +109,9 @@ Validacion actual:
   consulta productos/pedidos y responde sin crear pedidos reales.
 - Persistencia conversacional interna con sesiones, mensajes inbound/outbound,
   acumulacion no destructiva de datos extraidos y cierre manual de sesiones.
+- Webhook entrante compatible con Meta/WhatsApp Cloud API en modo preparacion:
+  verificacion GET, validacion HMAC-SHA256 de POST y procesamiento interno sin
+  envio real de mensajes.
 
 ## Estructura del proyecto
 
@@ -184,6 +188,11 @@ en el entorno del backend y enviar el header `X-Agent-Simulation-Token`. El
 endpoint stateless es `POST /api/v1/agent/simulate-message`; el endpoint con
 persistencia conversacional es `POST /api/v1/agent/simulate-conversation-message`.
 Ver `docs/AGENT.md`.
+
+Para probar el webhook WhatsApp/Meta en modo preparacion, configurar
+`WHATSAPP_WEBHOOK_ENABLED`, `WHATSAPP_WEBHOOK_VERIFY_TOKEN` y
+`WHATSAPP_APP_SECRET` en el entorno local del backend. El webhook valida firma,
+procesa mensajes internamente y no envia respuestas reales.
 
 ## Ejecutar el panel administrativo
 
@@ -311,6 +320,14 @@ Las validaciones de entrada responden con estado `422` y codigo
 ### Agente interno
 
 - `POST /api/v1/agent/simulate-message`
+- `POST /api/v1/agent/simulate-conversation-message`
+- `GET /api/v1/agent/conversations/{session_id}`
+- `POST /api/v1/agent/conversations/{session_id}/close`
+
+### WhatsApp webhook en preparacion
+
+- `GET /api/v1/whatsapp/webhook`
+- `POST /api/v1/whatsapp/webhook`
 
 ### Clientes
 
@@ -356,7 +373,7 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 ## Roadmap pendiente
 
-- Integracion futura con WhatsApp real.
+- Envio futuro de respuestas reales por WhatsApp.
 - Confirmacion conversacional de pedidos desde el agente.
 - Autorizacion y roles futuros.
 - Reportes operativos.
@@ -374,7 +391,7 @@ Las validaciones de entrada responden con estado `422` y codigo
 
 ## Funcionalidades aun no implementadas
 
-WhatsApp real, webhook publico, envio de mensajes, creacion automatica de
-pedidos desde el agente, roles reales, recuperacion de contrasena, OAuth,
-reportes y la gestion avanzada de rutas o repartidores todavia no forman parte
-del MVP actual.
+Envio real de mensajes por WhatsApp, exposicion publica sin controles
+adicionales, creacion automatica de pedidos desde el agente, roles reales,
+recuperacion de contrasena, OAuth, reportes y la gestion avanzada de rutas o
+repartidores todavia no forman parte del MVP actual.

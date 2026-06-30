@@ -61,10 +61,19 @@ Este roadmap resume el estado del MVP y el orden recomendado para continuar.
    - estados `active`, `waiting_for_customer`, `ready_for_confirmation`,
      `closed` y `expired`;
    - sin crear pedidos reales.
+13. Webhook WhatsApp/Meta seguro en modo preparacion:
+   - `GET /api/v1/whatsapp/webhook`;
+   - `POST /api/v1/whatsapp/webhook`;
+   - verificacion con `WHATSAPP_WEBHOOK_VERIFY_TOKEN`;
+   - validacion `X-Hub-Signature-256` con HMAC-SHA256;
+   - parseo defensivo de mensajes entrantes;
+   - integracion con persistencia conversacional 9B;
+   - tipos no soportados registrados sin romper el endpoint;
+   - sin envio real a Meta y sin crear pedidos reales.
 
 ## Siguiente bloque recomendado
 
-### Bloque 9C: Confirmacion conversacional antes de pedidos reales
+### Bloque 9D: Confirmacion conversacional antes de pedidos reales
 
 Objetivo recomendado: agregar un flujo explicito de confirmacion sobre sesiones
 persistentes antes de permitir que el agente prepare la creacion de pedidos
@@ -83,14 +92,14 @@ Alcance sugerido:
 - Roles futuros.
 - Seguridad API.
 - Auditoria basica.
-- Integracion futura con WhatsApp real.
+- Envio futuro de respuestas reales por WhatsApp.
 - Confirmacion conversacional del agente.
 - Reportes avanzados.
 - Gestion avanzada de rutas y repartidores.
 
 ## Orden recomendado
 
-1. Bloque 9C: confirmacion conversacional antes de pedidos reales.
+1. Bloque 9D: confirmacion conversacional antes de pedidos reales.
 2. Bloque 8C: roles o permisos basicos si el negocio lo requiere.
 3. Seguridad API antes de exponer webhooks publicos.
 4. Bloque 10A: reportes operativos mas detallados.

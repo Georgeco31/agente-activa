@@ -74,7 +74,7 @@ El backend contiene modelos ORM, migraciones, seed de estados, normalizacion de
 telefonos y texto, busqueda flexible, deteccion de duplicados, registro seguro
 de clientes, endpoints de clientes/productos/pedidos/dashboard, nucleo
 conversacional de simulacion interna, persistencia conversacional minima y
-contrato uniforme de errores.
+webhook WhatsApp/Meta en modo preparacion, con contrato uniforme de errores.
 
 ## Frontend actual
 
@@ -103,6 +103,8 @@ seguridad e identidad visual celeste/blanca.
     basicas y proteccion con `AGENT_SIMULATION_TOKEN`.
 12. Persistencia conversacional del agente: sesiones, mensajes inbound/outbound,
     acumulacion de datos extraidos y cierre manual de sesiones.
+13. Webhook WhatsApp/Meta seguro en modo preparacion: verificacion GET,
+    validacion HMAC-SHA256 de POST y procesamiento interno sin envio real.
 
 ## Autenticacion del panel
 
@@ -176,6 +178,23 @@ Estados conversacionales:
 `ready_for_confirmation` solo indica que el flujo puede pedir confirmacion
 futura. No significa que se haya creado un pedido real.
 
+El Bloque 9C agrega un borde externo preparado para Meta Webhooks:
+
+- `GET /api/v1/whatsapp/webhook`
+- `POST /api/v1/whatsapp/webhook`
+
+Variables backend:
+
+- `WHATSAPP_WEBHOOK_ENABLED`
+- `WHATSAPP_WEBHOOK_VERIFY_TOKEN`
+- `WHATSAPP_APP_SECRET`
+
+El `GET` valida `hub.mode=subscribe`, compara `hub.verify_token` y devuelve
+`hub.challenge` como texto plano. El `POST` lee el body crudo, valida
+`X-Hub-Signature-256` con HMAC-SHA256 y solo despues parsea JSON. Los mensajes
+de texto se envian al servicio persistente 9B; los tipos no soportados se
+registran como `unsupported_message_type`. No hay llamadas externas a Meta.
+
 Intenciones iniciales:
 
 - `greeting`
@@ -197,7 +216,7 @@ Restricciones importantes de 9A/9B:
 - no modifica pedidos;
 - no modifica clientes ni productos;
 - no envia mensajes reales;
-- no crea webhook publico;
+- no expone publicamente el backend sin controles adicionales;
 - no usa OpenAI ni APIs externas;
 - no conecta WhatsApp real.
 
@@ -215,6 +234,11 @@ Agente interno:
 - `POST /api/v1/agent/simulate-conversation-message`
 - `GET /api/v1/agent/conversations/{session_id}`
 - `POST /api/v1/agent/conversations/{session_id}/close`
+
+WhatsApp webhook en preparacion:
+
+- `GET /api/v1/whatsapp/webhook`
+- `POST /api/v1/whatsapp/webhook`
 
 Dashboard:
 
@@ -288,7 +312,7 @@ Reglas:
 
 Ultima validacion conocida:
 
-- Backend: `144 passed, 1 warning`.
+- Backend: `156 passed, 1 warning`.
 - Ruff: `All checks passed`.
 - Frontend: `npm run lint`, `npm run typecheck` y `npm run build` aprobados.
 - Healthcheck: `status ok`, `database ok`.
@@ -328,6 +352,8 @@ Ultima validacion conocida:
   webhook publico.
 - El agente 9A/9B no crea ni cancela pedidos reales; 9B solo persiste la
   conversacion interna.
+- El webhook 9C no envia respuestas reales a WhatsApp ni llama APIs externas de
+  Meta.
 - Mantener pruebas para nuevas funcionalidades.
 - Mantener documentacion actualizada.
 - Mantener la identidad visual celeste y blanca.

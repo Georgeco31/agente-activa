@@ -1,8 +1,8 @@
 # Agente conversacional
 
-Esta guia documenta los Bloques 9A y 9B del agente interno. El objetivo es
-preparar el futuro agente de WhatsApp sin conectar WhatsApp real, sin exponer
-webhooks publicos y sin crear pedidos reales automaticamente.
+Esta guia documenta los Bloques 9A, 9B y 9C del agente interno. El objetivo es
+preparar el futuro agente de WhatsApp sin enviar mensajes reales y sin crear
+pedidos reales automaticamente.
 
 ## Que hace 9A
 
@@ -33,10 +33,24 @@ interpreta, consulta y responde.
 `ready_for_confirmation` significa que el flujo ya tiene datos suficientes para
 pedir confirmacion en un bloque futuro. No significa que exista un pedido real.
 
+## Que hace 9C
+
+- Agrega un webhook entrante compatible con Meta/WhatsApp Cloud API en modo
+  preparacion.
+- Permite verificacion `GET` con `hub.mode`, `hub.verify_token` y
+  `hub.challenge`.
+- Recibe eventos `POST` solo si el webhook esta habilitado.
+- Valida `X-Hub-Signature-256` con HMAC-SHA256 usando `WHATSAPP_APP_SECRET`.
+- Parsea mensajes entrantes de texto.
+- Envia mensajes de texto validos al servicio conversacional persistente de 9B.
+- Guarda conversaciones y mensajes en la base de datos.
+- Registra tipos no soportados como metadata minima sin procesarlos como pedido.
+
+9C no llama APIs externas de Meta y no envia respuestas reales.
+
 ## Que no hace todavia
 
 - No conecta WhatsApp real.
-- No crea webhook publico.
 - No envia mensajes reales.
 - No usa OpenAI ni APIs externas.
 - No crea pedidos.
@@ -47,6 +61,8 @@ pedir confirmacion en un bloque futuro. No significa que exista un pedido real.
 - No confirma pedidos.
 - No implementa job automatico de expiracion.
 - No implementa una pantalla `/agent` en el panel.
+- No debe exponerse publicamente sin HTTPS, rate limiting, monitoreo y controles
+  adicionales.
 
 ## Intenciones soportadas
 
@@ -222,6 +238,104 @@ Devuelve la sesion, los datos acumulados y los mensajes guardados.
 
 Marca la sesion como `closed`. No elimina mensajes y no crea pedidos.
 
+## Webhook WhatsApp/Meta en preparacion
+
+Variables necesarias:
+
+```text
+WHATSAPP_WEBHOOK_ENABLED=false
+WHATSAPP_WEBHOOK_VERIFY_TOKEN=replace-with-whatsapp-webhook-verify-token
+WHATSAPP_APP_SECRET=replace-with-whatsapp-app-secret
+```
+
+`WHATSAPP_WEBHOOK_ENABLED` debe estar activo para aceptar verificacion o eventos.
+Los otros valores deben configurarse localmente con secretos reales fuera del
+repositorio. `apps/api/.env.example` contiene solo placeholders.
+
+### Verificacion GET
+
+`GET /api/v1/whatsapp/webhook`
+
+Parametros esperados:
+
+- `hub.mode=subscribe`
+- `hub.verify_token=<WHATSAPP_WEBHOOK_VERIFY_TOKEN>`
+- `hub.challenge=<valor-de-meta>`
+
+Si el webhook esta habilitado y el token coincide, la API devuelve
+`hub.challenge` como `text/plain`. Si el webhook esta deshabilitado, el modo no
+es `subscribe` o el token no coincide, responde `403`.
+
+Ejemplo local:
+
+```bash
+curl "http://localhost:8000/api/v1/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=$WHATSAPP_WEBHOOK_VERIFY_TOKEN&hub.challenge=test-challenge"
+```
+
+### Recepcion POST
+
+`POST /api/v1/whatsapp/webhook`
+
+El endpoint lee el body crudo, valida `X-Hub-Signature-256` con
+`WHATSAPP_APP_SECRET` y solo despues parsea JSON. El formato de firma esperado
+es:
+
+```http
+X-Hub-Signature-256: sha256=<hmac-hex>
+```
+
+Si la firma falta o no coincide, responde `401`. Si el evento se procesa,
+responde `200` con un resumen interno:
+
+```json
+{
+  "status": "ok",
+  "processed_messages": 1,
+  "unsupported_messages": 0,
+  "ignored_messages": 0,
+  "session_ids": ["33333333-3333-4333-8333-333333333333"],
+  "outbound_sent": false
+}
+```
+
+`outbound_sent: false` es intencional: el webhook no envia mensajes reales a
+WhatsApp en 9C.
+
+### Payload soportado
+
+El parseo defensivo lee:
+
+- `entry[].changes[].value.messages[]`
+- `from`
+- `id`
+- `timestamp`
+- `type`
+- `text.body` cuando `type == "text"`
+- metadata minima: `messaging_product`, `phone_number_id` y
+  `display_phone_number`
+
+Solo los mensajes de texto se envian al motor conversacional persistente. Los
+tipos `image`, `audio`, `sticker`, `location` u otros no rompen el endpoint:
+se registran como `unsupported_message_type`, responden `200` y no se procesan
+como pedido.
+
+### Probar firma HMAC localmente
+
+Ejemplo con valores ficticios locales:
+
+```bash
+BODY='{"entry":[{"changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"593999000000","phone_number_id":"phone-number-id"},"messages":[{"from":"593999999999","id":"wamid.local-test","timestamp":"1710000000","type":"text","text":{"body":"Hola, quiero un bidon de 20 litros"}}]}}]}]}'
+SIGNATURE=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$WHATSAPP_APP_SECRET" -binary | xxd -p -c 256)
+curl -X POST http://localhost:8000/api/v1/whatsapp/webhook \
+  -H "Content-Type: application/json" \
+  -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
+  -d "$BODY"
+```
+
+Para probar con Meta real se necesita una URL publica HTTPS. No se debe exponer
+el backend directamente a internet sin controles adicionales de seguridad,
+observabilidad y rate limiting.
+
 ## Acumulacion de extracted_data
 
 La acumulacion es no destructiva:
@@ -256,6 +370,10 @@ Reglas:
 - `apps/api/.env.example` contiene solo un placeholder;
 - no se debe subir `apps/api/.env` ni tokens reales.
 
+El webhook WhatsApp usa `WHATSAPP_WEBHOOK_VERIFY_TOKEN` para verificacion GET y
+`WHATSAPP_APP_SECRET` para validar firmas POST. Los errores no imprimen tokens,
+secrets ni firmas recibidas.
+
 ## Heuristicas actuales
 
 La extraccion es simple y basada en reglas:
@@ -277,6 +395,7 @@ una respuesta que pide aclaracion.
 - No hay confirmacion de pedido.
 - No hay auditoria avanzada.
 - No hay expiracion automatica de sesiones.
+- No hay envio saliente a WhatsApp.
 - Los sinonimos reales del negocio pueden requerir ajustes.
 - El token de simulacion no reemplaza autenticacion API completa.
 
@@ -284,6 +403,6 @@ una respuesta que pide aclaracion.
 
 - Flujo de confirmacion antes de crear pedidos reales.
 - Simulador visual en el panel admin.
-- Webhook WhatsApp seguro con verificacion de firma.
+- Envio WhatsApp saliente despues de controles adicionales.
 - Rate limiting y auditoria persistente.
 - Autenticacion API propia antes de exponer endpoints publicos.

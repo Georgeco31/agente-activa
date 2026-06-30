@@ -158,6 +158,7 @@ def simulate_conversation_message(
     *,
     phone: str,
     message: str,
+    provider_metadata: dict[str, Any] | None = None,
 ) -> AgentConversationSimulationResponse:
     normalized_phone = normalize_ecuador_phone(phone)
     session = _get_or_create_open_session(
@@ -200,6 +201,19 @@ def simulate_conversation_message(
             "last_message_at": _now(),
         },
     )
+    inbound_metadata: dict[str, Any] = {
+        "extracted": incoming_extracted,
+        "missing_fields": analysis.missing_fields,
+    }
+    outbound_metadata: dict[str, Any] = {
+        "extracted_data": extracted_data,
+        "missing_fields": missing_fields,
+        "sent_to_provider": False,
+    }
+    if provider_metadata is not None:
+        inbound_metadata["provider"] = provider_metadata
+        outbound_metadata["provider"] = provider_metadata
+
     conversation_repository.create_message(
         db,
         session_id=session.id,
@@ -208,10 +222,7 @@ def simulate_conversation_message(
         message=message,
         intent=analysis.intent.value,
         confidence=_confidence_as_decimal(analysis.confidence),
-        message_metadata={
-            "extracted": incoming_extracted,
-            "missing_fields": analysis.missing_fields,
-        },
+        message_metadata=inbound_metadata,
     )
     conversation_repository.create_message(
         db,
@@ -221,16 +232,57 @@ def simulate_conversation_message(
         message=analysis.reply,
         intent=analysis.intent.value,
         confidence=_confidence_as_decimal(analysis.confidence),
-        message_metadata={
-            "extracted_data": extracted_data,
-            "missing_fields": missing_fields,
-        },
+        message_metadata=outbound_metadata,
     )
 
     return AgentConversationSimulationResponse(
         session=_session_summary(session),
         analysis=accumulated_analysis,
     )
+
+
+def record_unsupported_conversation_message(
+    db: Session,
+    *,
+    phone: str,
+    message_type: str | None,
+    provider_metadata: dict[str, Any] | None = None,
+) -> AgentConversationSessionSummary:
+    normalized_phone = normalize_ecuador_phone(phone)
+    session = _get_or_create_open_session(
+        db,
+        phone=phone,
+        normalized_phone=normalized_phone,
+    )
+    unsupported_type = message_type or "unknown"
+    current_intent = session.current_intent or AgentIntent.UNKNOWN.value
+    status = session.status or ConversationStatus.ACTIVE.value
+
+    conversation_repository.update_session(
+        db,
+        session,
+        {
+            "phone": phone,
+            "normalized_phone": normalized_phone,
+            "status": status,
+            "current_intent": current_intent,
+            "last_message_at": _now(),
+        },
+    )
+    conversation_repository.create_message(
+        db,
+        session_id=session.id,
+        direction=ConversationMessageDirection.INBOUND.value,
+        phone=phone,
+        message=f"Unsupported WhatsApp message type: {unsupported_type}",
+        intent=AgentIntent.UNKNOWN.value,
+        confidence=None,
+        message_metadata={
+            "unsupported_message_type": unsupported_type,
+            "provider": provider_metadata or {},
+        },
+    )
+    return _session_summary(session)
 
 
 def get_conversation_session(db: Session, *, session_id: UUID) -> ConversationSession:
