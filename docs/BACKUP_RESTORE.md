@@ -121,3 +121,11 @@ restauracion.
 
 Si se necesita compartir un backup operativo, hacerlo por un canal seguro y
 fuera del repositorio.
+
+## Rutina operativa diaria
+
+Para operacion interna, usar tambien:
+
+- `docs/INTERNAL_OPERATIONS.md`
+- `docs/DAILY_OPERATIONS_CHECKLIST.md`
+- `docs/INCIDENT_RUNBOOK.md`

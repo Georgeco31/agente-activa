@@ -31,6 +31,20 @@ continuar.
 - No exponer FastAPI ni PostgreSQL publicamente sin controles de red, proxy y
   HTTPS.
 
+## Operacion interna
+
+- Documentar roles operativos como responsabilidades manuales, no como permisos
+  en codigo, hasta que exista un bloque especifico de roles.
+- Buscar clientes antes de crearlos para evitar duplicados.
+- Revisar telefono antes de crear o asociar clientes.
+- Registrar direcciones completas y referencias utiles para despacho.
+- Marcar productos inactivos en vez de borrarlos.
+- Crear pedidos solo con cliente, direccion, producto, cantidad y confirmacion
+  claros.
+- No inventar clientes, productos, precios ni direcciones durante la operacion.
+- No subir datos reales, backups, capturas con datos de clientes ni archivos
+  operativos privados al repo.
+
 ## Backend
 
 - No modificar Docker Compose sin necesidad clara.

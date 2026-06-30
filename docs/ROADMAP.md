@@ -89,6 +89,15 @@ Este roadmap resume el estado del MVP y el orden recomendado para continuar.
    - sin scripts operativos;
    - sin `docker-compose.prod.example.yml`;
    - sin cambios de logica backend/frontend.
+16. Preparacion de operacion interna local:
+   - `docs/INTERNAL_OPERATIONS.md`;
+   - `docs/INITIAL_DATA_LOAD.md`;
+   - `docs/ORDER_OPERATIONS.md`;
+   - `docs/DAILY_OPERATIONS_CHECKLIST.md`;
+   - `docs/INCIDENT_RUNBOOK.md`;
+   - roles operativos manuales sin permisos en codigo;
+   - sin datos reales en el repo;
+   - sin cambios de logica backend/frontend.
 
 ## Siguiente bloque recomendado
 
@@ -116,13 +125,21 @@ Alcance sugerido:
 - Gestion avanzada de rutas y repartidores.
 - Docker Compose de produccion, reverse proxy y HTTPS.
 - Scripts operativos para backup/restore cuando se valide una convencion.
+- Preparacion de servidor local.
+- WhatsApp saliente controlado.
+- Piloto con clientes reales.
+- Roles y permisos reales.
 
 ## Orden recomendado
 
 1. Bloque 9E: simulador visual interno o confirmacion especial de duplicados.
 2. Bloque 8C: roles o permisos basicos si el negocio lo requiere.
 3. Seguridad API antes de exponer webhooks publicos.
-4. Bloque 10B: reportes operativos mas detallados.
+4. Bloque 10C: scripts seguros de backup/restore.
+5. Bloque 10D: preparacion de servidor local.
+6. Bloque 11A: WhatsApp saliente controlado.
+7. Bloque 11B: piloto con clientes reales.
+8. Reportes operativos mas detallados.
 
 ## Que no hacer todavia
 

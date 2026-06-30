@@ -195,5 +195,8 @@ docker compose down -v
 
 - `docs/BACKUP_RESTORE.md`
 - `docs/DEPLOYMENT_CHECKLIST.md`
+- `docs/INTERNAL_OPERATIONS.md`
+- `docs/DAILY_OPERATIONS_CHECKLIST.md`
+- `docs/INCIDENT_RUNBOOK.md`
 - `docs/PRODUCTION_READINESS.md`
 - `docs/SECURITY.md`

@@ -84,3 +84,11 @@ docker compose down
 ```
 
 - [ ] Se entiende que `docker compose down -v` borra datos locales.
+
+## Operacion diaria
+
+- [ ] El equipo conoce `docs/INTERNAL_OPERATIONS.md`.
+- [ ] El equipo conoce `docs/INITIAL_DATA_LOAD.md`.
+- [ ] El equipo conoce `docs/ORDER_OPERATIONS.md`.
+- [ ] El equipo usa `docs/DAILY_OPERATIONS_CHECKLIST.md`.
+- [ ] El responsable conoce `docs/INCIDENT_RUNBOOK.md`.

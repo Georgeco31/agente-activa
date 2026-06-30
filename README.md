@@ -48,6 +48,7 @@ cuenta con su base tecnica y visual. Los bloques completados son:
 - Bloque 9C: webhook WhatsApp/Meta seguro en modo preparacion.
 - Bloque 9D: confirmacion conversacional y creacion segura de pedidos reales.
 - Bloque 10A: preparacion local escalable, backups y checklist de despliegue.
+- Bloque 10B: preparacion de operacion interna local.
 
 Validacion actual:
 
@@ -150,9 +151,14 @@ Validacion actual:
 |   |-- BACKUP_RESTORE.md
 |   |-- CODEX_HANDOFF.md
 |   |-- DATA_MODEL.md
+|   |-- DAILY_OPERATIONS_CHECKLIST.md
 |   |-- DEPLOYMENT_CHECKLIST.md
+|   |-- INCIDENT_RUNBOOK.md
+|   |-- INITIAL_DATA_LOAD.md
+|   |-- INTERNAL_OPERATIONS.md
 |   |-- LOCAL_DEPLOYMENT.md
 |   |-- MAC_SETUP.md
+|   |-- ORDER_OPERATIONS.md
 |   |-- PRD.md
 |   |-- PRODUCTION_READINESS.md
 |   |-- PROJECT_RULES.md
@@ -320,6 +326,19 @@ para VPS/nube futura esta en
 Los ejemplos adicionales de entorno viven en `docs/env/` y contienen solo
 placeholders. No crear ni versionar `.env` reales.
 
+## Operacion interna
+
+Las guias para uso diario interno estan en:
+
+- [`docs/INTERNAL_OPERATIONS.md`](docs/INTERNAL_OPERATIONS.md)
+- [`docs/INITIAL_DATA_LOAD.md`](docs/INITIAL_DATA_LOAD.md)
+- [`docs/ORDER_OPERATIONS.md`](docs/ORDER_OPERATIONS.md)
+- [`docs/DAILY_OPERATIONS_CHECKLIST.md`](docs/DAILY_OPERATIONS_CHECKLIST.md)
+- [`docs/INCIDENT_RUNBOOK.md`](docs/INCIDENT_RUNBOOK.md)
+
+Estas guias no implementan roles tecnicos ni permisos en codigo. Definen
+responsabilidades manuales para operar el MVP localmente.
+
 ## Respuestas de error
 
 Los errores de la API usan una estructura uniforme:
@@ -399,6 +418,11 @@ Las validaciones de entrada responden con estado `422` y codigo
 - [Operación local](docs/LOCAL_DEPLOYMENT.md)
 - [Backups y restauración](docs/BACKUP_RESTORE.md)
 - [Checklist de despliegue](docs/DEPLOYMENT_CHECKLIST.md)
+- [Operación interna](docs/INTERNAL_OPERATIONS.md)
+- [Carga inicial de datos](docs/INITIAL_DATA_LOAD.md)
+- [Operación de pedidos](docs/ORDER_OPERATIONS.md)
+- [Checklist diario](docs/DAILY_OPERATIONS_CHECKLIST.md)
+- [Runbook de incidentes](docs/INCIDENT_RUNBOOK.md)
 - [Preparación para producción](docs/PRODUCTION_READINESS.md)
 - [Handoff para Codex](docs/CODEX_HANDOFF.md)
 - [Setup en Mac](docs/MAC_SETUP.md)
@@ -416,6 +440,10 @@ Las validaciones de entrada responden con estado `422` y codigo
 - Gestion avanzada de rutas y repartidores.
 - Docker Compose de produccion, reverse proxy y HTTPS cuando se defina el
   despliegue publico.
+- Scripts seguros de backup/restore.
+- Preparacion de servidor local.
+- WhatsApp saliente controlado.
+- Piloto con clientes reales.
 
 ## Seguridad
 

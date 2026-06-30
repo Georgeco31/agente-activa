@@ -112,6 +112,8 @@ seguridad e identidad visual celeste/blanca.
 15. Preparacion local escalable: guias de operacion local, backups,
     restauracion, checklist de despliegue interno y readiness para VPS/nube
     futura.
+16. Preparacion de operacion interna local: flujo diario, carga inicial de
+    datos, protocolo de pedidos, checklist diario y runbook de incidentes.
 
 ## Autenticacion del panel
 
@@ -273,6 +275,26 @@ seguros para operar localmente o en un servidor interno:
 No se creo `docker-compose.prod.example.yml` ni scripts operativos. El
 `docker-compose.yml` actual sigue siendo local.
 
+## Operacion interna local
+
+El Bloque 10B agrega guias para operar el MVP dentro de Agua Activa sin cambiar
+codigo:
+
+- `docs/INTERNAL_OPERATIONS.md`: flujo diario, roles operativos manuales,
+  dashboard, clientes, productos, pedidos, backup y apagado.
+- `docs/INITIAL_DATA_LOAD.md`: orden y reglas para cargar productos, clientes,
+  telefonos, alias, direcciones y referencias.
+- `docs/ORDER_OPERATIONS.md`: protocolo para crear pedidos, usar estados,
+  manejar duplicados, cambios de direccion y productos no registrados.
+- `docs/DAILY_OPERATIONS_CHECKLIST.md`: checklist de inicio, durante el dia y
+  fin del dia.
+- `docs/INCIDENT_RUNBOOK.md`: pasos ante fallas de backend, frontend, login,
+  Docker, PostgreSQL, dashboard, duplicados, datos mal ingresados, restore,
+  apagados accidentales y cortes de luz.
+
+No hay roles reales ni permisos en codigo. Los roles documentados son
+responsabilidades manuales para operacion local.
+
 ## Endpoints principales
 
 Health:
@@ -385,7 +407,12 @@ Ultima validacion conocida:
 12. `docs/BACKUP_RESTORE.md`
 13. `docs/DEPLOYMENT_CHECKLIST.md`
 14. `docs/PRODUCTION_READINESS.md`
-15. `docs/TESTING.md`
+15. `docs/INTERNAL_OPERATIONS.md`
+16. `docs/INITIAL_DATA_LOAD.md`
+17. `docs/ORDER_OPERATIONS.md`
+18. `docs/DAILY_OPERATIONS_CHECKLIST.md`
+19. `docs/INCIDENT_RUNBOOK.md`
+20. `docs/TESTING.md`
 
 ## Decisiones tecnicas importantes
 
@@ -412,6 +439,8 @@ Ultima validacion conocida:
   de Meta y no crea pedidos reales automaticamente.
 - El Bloque 10A es documental: no cambia backend, frontend, endpoints,
   migraciones ni Docker Compose actual.
+- El Bloque 10B tambien es documental: no crea roles reales, usuarios,
+  permisos, scripts ni datos reales.
 - No crear scripts operativos ni docker-compose de produccion hasta definir
   reverse proxy, HTTPS, dominios, backups, logs y separacion de ambientes.
 - Mantener pruebas para nuevas funcionalidades.
