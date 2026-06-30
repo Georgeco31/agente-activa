@@ -11,7 +11,7 @@ Usar este checklist cada dia de operacion interna.
 - [ ] Health OK:
 
 ```bash
-curl http://localhost:8000/api/v1/health
+./scripts/check-health.sh
 ```
 
 - [ ] Admin abre en `http://localhost:3000/login`.
@@ -38,7 +38,7 @@ curl http://localhost:8000/api/v1/health
 - [ ] Pedidos pendientes revisados.
 - [ ] Pedidos `en_camino` revisados.
 - [ ] Pedidos `no_entregado` revisados.
-- [ ] Backup generado siguiendo `docs/BACKUP_RESTORE.md`.
+- [ ] Backup generado con `./scripts/backup-db.sh`.
 - [ ] Backup verificado con `ls -lh backups/` o ubicacion segura equivalente.
 - [ ] Backup guardado fuera del repo.
 - [ ] Si aplica, copia guardada en unidad externa o carpeta segura.
@@ -46,7 +46,7 @@ curl http://localhost:8000/api/v1/health
 - [ ] Backend/base apagados si corresponde:
 
 ```bash
-docker compose down
+./scripts/stop-local.sh
 ```
 
 - [ ] No se uso `docker compose down -v` salvo decision deliberada.

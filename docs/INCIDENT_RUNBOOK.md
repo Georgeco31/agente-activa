@@ -29,6 +29,12 @@ docker compose logs db
 Healthcheck:
 
 ```bash
+./scripts/check-health.sh
+```
+
+Healthcheck manual de backend:
+
+```bash
 curl http://localhost:8000/api/v1/health
 ```
 
@@ -57,7 +63,7 @@ docker compose logs api
 4. Validar health:
 
 ```bash
-curl http://localhost:8000/api/v1/health
+./scripts/check-health.sh
 ```
 
 Si la base no responde, revisar la seccion PostgreSQL.
@@ -172,6 +178,12 @@ Antes de restaurar:
 3. Probar en entorno de prueba si hay datos importantes.
 4. Seguir `docs/BACKUP_RESTORE.md`.
 
+Comando local:
+
+```bash
+./scripts/restore-db.sh backups/archivo.dump
+```
+
 No restaurar sobre produccion sin backup previo y aprobacion del responsable.
 
 ## PC apagada por error
@@ -183,7 +195,7 @@ No restaurar sobre produccion sin backup previo y aprobacion del responsable.
 ```bash
 docker compose up -d
 docker compose ps
-curl http://localhost:8000/api/v1/health
+./scripts/check-health.sh
 ```
 
 4. Levantar admin si corresponde.

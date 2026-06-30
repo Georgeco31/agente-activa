@@ -98,6 +98,15 @@ Este roadmap resume el estado del MVP y el orden recomendado para continuar.
    - roles operativos manuales sin permisos en codigo;
    - sin datos reales en el repo;
    - sin cambios de logica backend/frontend.
+17. Scripts seguros de backup, restore y healthcheck local:
+   - `scripts/backup-db.sh`;
+   - `scripts/restore-db.sh`;
+   - `scripts/check-health.sh`;
+   - `scripts/stop-local.sh`;
+   - backups guardados en `backups/`;
+   - restore con confirmacion exacta `RESTORE`;
+   - `backups/`, `*.dump` y `*.backup` ignorados por Git;
+   - sin `scripts/start-local.sh`.
 
 ## Siguiente bloque recomendado
 
@@ -124,7 +133,7 @@ Alcance sugerido:
 - Reportes avanzados.
 - Gestion avanzada de rutas y repartidores.
 - Docker Compose de produccion, reverse proxy y HTTPS.
-- Scripts operativos para backup/restore cuando se valide una convencion.
+- `scripts/start-local.sh` cuando se valide una convencion diaria.
 - Preparacion de servidor local.
 - WhatsApp saliente controlado.
 - Piloto con clientes reales.
@@ -135,11 +144,10 @@ Alcance sugerido:
 1. Bloque 9E: simulador visual interno o confirmacion especial de duplicados.
 2. Bloque 8C: roles o permisos basicos si el negocio lo requiere.
 3. Seguridad API antes de exponer webhooks publicos.
-4. Bloque 10C: scripts seguros de backup/restore.
-5. Bloque 10D: preparacion de servidor local.
-6. Bloque 11A: WhatsApp saliente controlado.
-7. Bloque 11B: piloto con clientes reales.
-8. Reportes operativos mas detallados.
+4. Bloque 10D: preparacion de servidor local.
+5. Bloque 11A: WhatsApp saliente controlado.
+6. Bloque 11B: piloto con clientes reales.
+7. Reportes operativos mas detallados.
 
 ## Que no hacer todavia
 

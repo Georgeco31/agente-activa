@@ -115,6 +115,12 @@ Healthcheck:
 curl http://localhost:8000/api/v1/health
 ```
 
+Healthcheck operativo:
+
+```bash
+./scripts/check-health.sh
+```
+
 Respuesta esperada:
 
 ```json
@@ -168,6 +174,12 @@ Detener el admin con `Ctrl + C` en la terminal de Next.js.
 Apagar backend y base de datos:
 
 ```bash
+./scripts/stop-local.sh
+```
+
+Comando manual equivalente:
+
+```bash
 docker compose down
 ```
 
@@ -190,6 +202,16 @@ docker compose down -v
 - No habilitar `WHATSAPP_WEBHOOK_ENABLED` en una URL publica sin entender los
   riesgos.
 - No exponer FastAPI directamente a internet.
+
+## Scripts locales
+
+- Backup local: `./scripts/backup-db.sh`
+- Restore local con confirmacion: `./scripts/restore-db.sh backups/archivo.dump`
+- Healthcheck local: `./scripts/check-health.sh`
+- Parada segura: `./scripts/stop-local.sh`
+
+No existe `scripts/start-local.sh` todavia. Queda para futuro cuando la
+operacion diaria este estabilizada.
 
 ## Documentacion relacionada
 

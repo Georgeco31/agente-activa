@@ -49,6 +49,7 @@ cuenta con su base tecnica y visual. Los bloques completados son:
 - Bloque 9D: confirmacion conversacional y creacion segura de pedidos reales.
 - Bloque 10A: preparacion local escalable, backups y checklist de despliegue.
 - Bloque 10B: preparacion de operacion interna local.
+- Bloque 10C: scripts seguros de backup, restore, healthcheck y parada local.
 
 Validacion actual:
 
@@ -166,6 +167,11 @@ Validacion actual:
 |   |-- SECURITY.md
 |   |-- env/
 |   `-- TESTING.md
+|-- scripts/
+|   |-- backup-db.sh
+|   |-- check-health.sh
+|   |-- restore-db.sh
+|   `-- stop-local.sh
 |-- docker-compose.yml
 `-- README.md
 ```
@@ -326,6 +332,19 @@ para VPS/nube futura esta en
 Los ejemplos adicionales de entorno viven en `docs/env/` y contienen solo
 placeholders. No crear ni versionar `.env` reales.
 
+Scripts locales:
+
+```bash
+./scripts/check-health.sh
+./scripts/backup-db.sh
+./scripts/restore-db.sh backups/archivo.dump
+./scripts/stop-local.sh
+```
+
+`restore-db.sh` exige confirmacion exacta `RESTORE` y puede ser destructivo.
+Los backups se guardan en `backups/`, que esta ignorado por Git junto con
+`*.dump` y `*.backup`.
+
 ## Operacion interna
 
 Las guias para uso diario interno estan en:
@@ -440,7 +459,7 @@ Las validaciones de entrada responden con estado `422` y codigo
 - Gestion avanzada de rutas y repartidores.
 - Docker Compose de produccion, reverse proxy y HTTPS cuando se defina el
   despliegue publico.
-- Scripts seguros de backup/restore.
+- `start-local.sh` cuando la operacion diaria este estabilizada.
 - Preparacion de servidor local.
 - WhatsApp saliente controlado.
 - Piloto con clientes reales.
@@ -460,5 +479,5 @@ Las validaciones de entrada responden con estado `422` y codigo
 Envio real de mensajes por WhatsApp, exposicion publica sin controles
 adicionales, creacion automatica de pedidos desde el agente, roles reales,
 recuperacion de contrasena, OAuth, reportes, docker-compose de produccion,
-scripts operativos y la gestion avanzada de rutas o repartidores todavia no
-forman parte del MVP actual.
+scripts operativos avanzados y la gestion avanzada de rutas o repartidores
+todavia no forman parte del MVP actual.

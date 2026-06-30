@@ -114,6 +114,8 @@ seguridad e identidad visual celeste/blanca.
     futura.
 16. Preparacion de operacion interna local: flujo diario, carga inicial de
     datos, protocolo de pedidos, checklist diario y runbook de incidentes.
+17. Scripts seguros de operacion local: backup, restore con confirmacion,
+    healthcheck y parada local sin borrar volumenes.
 
 ## Autenticacion del panel
 
@@ -295,6 +297,25 @@ codigo:
 No hay roles reales ni permisos en codigo. Los roles documentados son
 responsabilidades manuales para operacion local.
 
+## Scripts locales
+
+El Bloque 10C agrega scripts en `scripts/` para reducir comandos largos en
+operacion interna:
+
+- `scripts/backup-db.sh`: genera backup PostgreSQL en `backups/` usando
+  `pg_dump -Fc` dentro del servicio `db`.
+- `scripts/restore-db.sh`: restaura un `.dump` con confirmacion exacta
+  `RESTORE`, ejecuta migraciones y seed despues.
+- `scripts/check-health.sh`: revisa Docker Compose, backend, frontend y puertos
+  locales.
+- `scripts/stop-local.sh`: ejecuta `docker compose down` y no borra volumenes.
+
+No existe `scripts/start-local.sh` todavia. Queda para futuro cuando la
+operacion diaria este estabilizada.
+
+`backups/`, `*.dump` y `*.backup` estan ignorados por Git. No subir backups ni
+datos reales.
+
 ## Endpoints principales
 
 Health:
@@ -412,7 +433,8 @@ Ultima validacion conocida:
 17. `docs/ORDER_OPERATIONS.md`
 18. `docs/DAILY_OPERATIONS_CHECKLIST.md`
 19. `docs/INCIDENT_RUNBOOK.md`
-20. `docs/TESTING.md`
+20. `scripts/`
+21. `docs/TESTING.md`
 
 ## Decisiones tecnicas importantes
 
@@ -441,8 +463,10 @@ Ultima validacion conocida:
   migraciones ni Docker Compose actual.
 - El Bloque 10B tambien es documental: no crea roles reales, usuarios,
   permisos, scripts ni datos reales.
-- No crear scripts operativos ni docker-compose de produccion hasta definir
-  reverse proxy, HTTPS, dominios, backups, logs y separacion de ambientes.
+- El Bloque 10C crea scripts locales seguros, pero no crea `start-local.sh`,
+  backups reales ni estrategia de produccion.
+- No crear docker-compose de produccion hasta definir reverse proxy, HTTPS,
+  dominios, backups, logs y separacion de ambientes.
 - Mantener pruebas para nuevas funcionalidades.
 - Mantener documentacion actualizada.
 - Mantener la identidad visual celeste y blanca.

@@ -36,6 +36,7 @@ o servidor interno.
 - [ ] Migraciones aplicadas con `alembic upgrade head`.
 - [ ] Seed de estados ejecutado.
 - [ ] Healthcheck OK.
+- [ ] `./scripts/check-health.sh` ejecutado si aplica.
 - [ ] Dashboard endpoint responde.
 - [ ] Pruebas backend ejecutadas si corresponde.
 - [ ] Ruff ejecutado si corresponde.
@@ -55,11 +56,12 @@ o servidor interno.
 
 ## Backups
 
-- [ ] Backup creado con `pg_dump`.
+- [ ] Backup creado con `./scripts/backup-db.sh`.
 - [ ] Backup copiado fuera del contenedor.
 - [ ] Backup guardado fuera de carpetas trackeadas.
 - [ ] Restauracion probada en entorno local o de prueba.
 - [ ] Procedimiento de restore conocido.
+- [ ] Restore local conocido: `./scripts/restore-db.sh backups/archivo.dump`.
 - [ ] Procedimiento de rollback basico conocido.
 
 ## Seguridad y Git
@@ -80,7 +82,7 @@ o servidor interno.
 - [ ] Se conoce el procedimiento de apagado de backend/base:
 
 ```bash
-docker compose down
+./scripts/stop-local.sh
 ```
 
 - [ ] Se entiende que `docker compose down -v` borra datos locales.

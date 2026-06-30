@@ -29,6 +29,22 @@ mkdir -p backups
 
 ## Crear backup
 
+Usar el script seguro para operacion local:
+
+```bash
+./scripts/backup-db.sh
+```
+
+El backup se guarda en `backups/` con nombre:
+
+```text
+agua_sales_YYYYMMDD_HHMMSS.dump
+```
+
+`backups/`, `*.dump` y `*.backup` estan ignorados por Git.
+
+Comandos equivalentes manuales:
+
 Crear el dump dentro del contenedor `db`:
 
 ```bash
@@ -56,6 +72,17 @@ ls -lh backups/
 - Antes de mover datos entre maquinas.
 
 ## Restaurar backup
+
+Usar el script seguro para operacion local:
+
+```bash
+./scripts/restore-db.sh backups/agua_sales_YYYYMMDD_HHMMSS.dump
+```
+
+El script exige escribir `RESTORE` exactamente antes de continuar. No se debe
+automatizar esta confirmacion.
+
+Comandos equivalentes manuales:
 
 Copiar el backup al contenedor:
 
@@ -93,6 +120,10 @@ exactamente que se esta haciendo.
 
 Para produccion, restaurar primero en un entorno de prueba y validar datos,
 migraciones y healthcheck antes de tocar la base principal.
+
+Los scripts de este bloque son para operacion local/interna. Produccion futura
+necesitara una estrategia mas robusta de backups automaticos, retencion,
+cifrado, monitoreo y restauracion probada.
 
 ## Probar una restauracion
 

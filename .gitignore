@@ -22,6 +22,9 @@ apps/api/.env
 
 # Docker / logs
 *.log
+backups/
+*.dump
+*.backup
 docker-data/
 postgres-data/
 
